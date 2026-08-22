@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% block title %}{{ team.name }} - ETMP{% endblock %}
+{% block content %}
+<a href="/organizations/{{ organization_id }}/teams" class="back-link">← Teams</a>
+<h2>{{ team.name }}</h2>
+
+<form method="POST" action="/organizations/{{ organization_id }}/teams/{{ team.id }}/update">
+    <label>Rename:</label>
+    <input type="text" name="name" value="{{ team.name }}" required>
+    <button type="submit">Update</button>
+</form>
+
+<form method="POST" action="/organizations/{{ organization_id }}/teams/{{ team.id }}/delete">
+    <button type="submit" style="background:#dc2626;">Delete Team</button>
+</form>
+
+<h3>Members</h3>
+<ul>
+    {% for m, name in members %}
+    <li>{{ name }} — {{ m.role.value }}</li>
+    {% else %}
+    <li>No members yet.</li>
+    {% endfor %}
+</ul>
+
+<h3>Add Member</h3>
+<p style="font-size: 13px; color: #666;">
+    Note: user must already be a member of this organization to join a team.
+    <a href="/organizations/{{ organization_id }}">Add them to the organization first</a>.
+</p>
+{% if error %}<p class="error">{{ error }}</p>{% endif %}
+<form method="POST" action="/organizations/{{ organization_id }}/teams/{{ team.id }}/members">
+    <label>Email:</label>
+    <input type="email" name="email" required>
+    <label>Role:</label>
+    <select name="role">
+        <option value="MEMBER">Member</option>
+        <option value="TEAM_LEAD">Team Lead</option>
+    </select>
+    <button type="submit">Add</button>
+</form>
+{% endblock %}

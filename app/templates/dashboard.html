@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - ETMP{% endblock %}
+
+{% block content %}
+<h2>Welcome, {{ user.full_name }}</h2>
+
+<div class="stats">
+    <p>Assigned: {{ dashboard.assigned_tasks_count }}</p>
+    <p>Overdue: {{ dashboard.overdue_tasks_count }}</p>
+    <p>Unread: {{ dashboard.unread_notifications_count }}</p>
+</div>
+
+<nav>
+    <a href="/organizations">My Organizations</a>
+    <a href="/logout">Logout</a>
+    <a href="/notifications">Notifications</a>
+    <a href="/profile">My Profile</a>
+</nav>
+
+<h3>Recent Tasks</h3>
+<ul>
+    {% for task in dashboard.recent_tasks %}
+    <li>{{ task.title }} — {{ task.priority }}</li>
+    {% else %}
+    <li>No tasks assigned yet.</li>
+    {% endfor %}
+</ul>
+{% endblock %}

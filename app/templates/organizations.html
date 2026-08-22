@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block title %}Organizations - ETMP{% endblock %}
+{% block content %}
+<a href="/dashboard" class="back-link">← Dashboard</a>
+<h2>My Organizations</h2>
+
+<ul>
+    {% for org in organizations %}
+    <li><a href="/organizations/{{ org.id }}">{{ org.name }}</a> ({{ org.slug }})</li>
+    {% else %}
+    <li>No organizations yet.</li>
+    {% endfor %}
+</ul>
+
+<h3>Create New Organization</h3>
+{% if error %}<p class="error">{{ error }}</p>{% endif %}
+<form method="POST" action="/organizations">
+    <label>Name:</label>
+    <input type="text" name="name" required>
+    <label>Slug:</label>
+    <input type="text" name="slug" required pattern="[a-z0-9]+(-[a-z0-9]+)*">
+    <button type="submit">Create</button>
+</form>
+{% endblock %}

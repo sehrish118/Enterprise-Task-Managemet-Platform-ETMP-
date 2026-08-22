@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+{% block title %}{{ task.title }} - ETMP{% endblock %}
+{% block content %}
+<a href="/organizations/{{ organization_id }}/projects/{{ task.project_id }}/tasks" class="back-link">← Tasks</a>
+<h2>{{ task.title }}</h2>
+
+<form method="POST" action="/organizations/{{ organization_id }}/tasks/{{ task.id }}/update">
+    <label>Title:</label>
+    <input type="text" name="title" value="{{ task.title }}" required>
+    <label>Description:</label>
+    <input type="text" name="description" value="{{ task.description or '' }}">
+    <label>Priority:</label>
+    <select name="priority">
+        <option value="LOW" {% if task.priority.value=="LOW" %}selected{% endif %}>Low</option>
+        <option value="MEDIUM" {% if task.priority.value=="MEDIUM" %}selected{% endif %}>Medium</option>
+        <option value="HIGH" {% if task.priority.value=="HIGH" %}selected{% endif %}>High</option>
+        <option value="URGENT" {% if task.priority.value=="URGENT" %}selected{% endif %}>Urgent</option>
+    </select>
+    <button type="submit">Update</button>
+</form>
+
+<form method="POST" action="/organizations/{{ organization_id }}/tasks/{{ task.id }}/delete">
+    <button type="submit" style="background:#dc2626;">Delete Task</button>
+</form>
+
+<h3>Assign User</h3>
+{% if error %}<p class="error">{{ error }}</p>{% endif %}
+<form method="POST" action="/organizations/{{ organization_id }}/tasks/{{ task.id }}/assignees">
+    <label>Email:</label>
+    <input type="email" name="email" required>
+    <button type="submit">Assign</button>
+</form>
+
+<h3>Assignees</h3>
+<ul>
+    {% for a, name in assignees %}
+    <li>{{ name }}</li>
+    {% else %}
+    <li>No one assigned yet.</li>
+    {% endfor %}
+</ul>
+
+
+
+<h3>Attachments</h3>
+<ul>
+    {% for att in attachments %}
+    <li><a href="{{ att.file_url }}" target="_blank">{{ att.original_filename }}</a> ({{ att.mime_type }})</li>
+    {% else %}
+    <li>No attachments yet.</li>
+    {% endfor %}
+</ul>
+
+<h4>Add Attachment (link-based)</h4>
+<form method="POST" action="/organizations/{{ organization_id }}/tasks/{{ task.id }}/attachments">
+    <label>File Name:</label>
+    <input type="text" name="original_filename" required>
+    <label>File URL:</label>
+    <input type="text" name="file_url" placeholder="https://..." required>
+    <label>Type:</label>
+    <input type="text" name="mime_type" value="application/octet-stream" required>
+    <button type="submit">Add</button>
+</form>
+
+<h3>Comments</h3>
+{% for comment, author_name in comments %}
+<li>
+    <strong>{{ author_name }}:</strong> {{ comment.content }}
+    {% if comment.user_id == current_user_id %}
+    <form method="POST"
+        action="/organizations/{{ organization_id }}/tasks/{{ task.id }}/comments/{{ comment.id }}/delete"
+        style="display:inline;">
+        <button type="submit">Delete</button>
+    </form>
+    {% endif %}
+</li>
+{% else %}
+<li>No comments yet.</li>
+{% endfor %}
+
+
+<form method="POST" action="/organizations/{{ organization_id }}/tasks/{{ task.id }}/comments">
+    <label>Add Comment:</label>
+    <input type="text" name="content" required>
+    <button type="submit">Post</button>
+</form>
+{% endblock %}

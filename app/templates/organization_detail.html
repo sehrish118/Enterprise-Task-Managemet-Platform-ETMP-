@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% block title %}{{ organization.name }} - ETMP{% endblock %}
+{% block content %}
+<a href="/organizations" class="back-link">← Organizations</a>
+<h2>{{ organization.name }}</h2>
+<p>Slug: {{ organization.slug }}</p>
+
+<nav>
+    <a href="/organizations/{{ organization.id }}/dashboard">Dashboard</a>
+    <a href="/organizations/{{ organization.id }}/teams">Teams</a>
+    <a href="/organizations/{{ organization.id }}/projects">Projects</a>
+
+</nav>
+
+
+<h3>Add Member</h3>
+
+<p style="font-size: 13px; color: #666;">
+    User doesn't have an account yet?
+    <a href="/register" target="_blank">Register them here</a>
+    (opens in a new tab so your session stays active), then add them below.
+</p>
+{% if error %}<p class="error">{{ error }}</p>{% endif %}
+<form method="POST" action="/organizations/{{ organization.id }}/members">
+    <label>Email:</label>
+    <input type="email" name="email" required>
+    <label>Role:</label>
+    <select name="role_name">
+        <option value="Member">Member</option>
+        <option value="Admin">Admin</option>
+    </select>
+    <button type="submit">Add</button>
+</form>
+{% endblock %}

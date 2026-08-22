@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block title %}Notifications - ETMP{% endblock %}
+{% block content %}
+<a href="/dashboard" class="back-link">← Dashboard</a>
+<h2>Notifications</h2>
+
+<ul>
+    {% for n in notifications %}
+    <li>
+        <strong>{{ n.title }}</strong> — {{ n.message }}
+        {% if not n.is_read %}
+        <form method="POST" action="/notifications/{{ n.id }}/mark-read" style="display:inline;">
+            <button type="submit">Mark Read</button>
+        </form>
+        {% else %}
+        <span>(read)</span>
+        {% endif %}
+    </li>
+    {% else %}
+    <li>No notifications yet.</li>
+    {% endfor %}
+</ul>
+{% endblock %}

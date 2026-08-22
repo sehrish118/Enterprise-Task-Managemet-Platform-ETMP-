@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+{% block title %}Tasks - ETMP{% endblock %}
+{% block content %}
+<a href="/organizations/{{ organization_id }}/projects/{{ project_id }}" class="back-link">← Project</a>
+<h2>Tasks</h2>
+<form method="GET" action="/organizations/{{ organization_id }}/projects/{{ project_id }}/tasks">
+    <label>Search:</label>
+    <input type="text" name="search" value="{{ search_query or '' }}">
+    <label>Priority:</label>
+    <select name="priority">
+        <option value="">All</option>
+        <option value="LOW">Low</option>
+        <option value="MEDIUM">Medium</option>
+        <option value="HIGH">High</option>
+        <option value="URGENT">Urgent</option>
+    </select>
+    <button type="submit">Filter</button>
+</form>
+<ul>
+    {% for task in tasks %}
+    <li>
+        <a href="/organizations/{{ organization_id }}/projects/{{ project_id }}/tasks/{{ task.id }}">{{ task.title
+            }}</a>
+        — {{ task.priority.value }}
+    </li>
+    {% else %}
+    <li>No tasks yet.</li>
+    {% endfor %}
+</ul>
+
+<h3>Create New Task</h3>
+{% if error %}<p class="error">{{ error }}</p>{% endif %}
+<form method="POST" action="/organizations/{{ organization_id }}/projects/{{ project_id }}/tasks">
+    <label>Title:</label>
+    <input type="text" name="title" required>
+    <label>Description:</label>
+    <input type="text" name="description">
+    <label>Status:</label>
+    <select name="status_id">
+        {% for status in statuses %}
+        <option value="{{ status.id }}">{{ status.name }}</option>
+        {% endfor %}
+    </select>
+    <label>Priority:</label>
+    <select name="priority">
+        <option value="LOW">Low</option>
+        <option value="MEDIUM" selected>Medium</option>
+        <option value="HIGH">High</option>
+        <option value="URGENT">Urgent</option>
+    </select>
+    <button type="submit">Create</button>
+</form>
+
+<h3>Create New Status Column</h3>
+{% if status_error %}<p class="error">{{ status_error }}</p>{% endif %}
+<form method="POST" action="/organizations/{{ organization_id }}/task-statuses">
+    <label>Name:</label>
+    <input type="text" name="name" required>
+    <label>Color (hex):</label>
+    <input type="text" name="color" value="#808080" required>
+    <label>Position:</label>
+    <input type="number" name="position" value="1" required>
+    <button type="submit">Create Status</button>
+</form>
+
+{% endblock %}

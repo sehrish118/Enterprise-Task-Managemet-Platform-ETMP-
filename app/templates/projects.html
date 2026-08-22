@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block title %}Projects - ETMP{% endblock %}
+{% block content %}
+<a href="/organizations/{{ organization_id }}" class="back-link">← Organization</a>
+<h2>Projects</h2>
+
+<ul>
+    {% for project in projects %}
+    <li><a href="/organizations/{{ organization_id }}/projects/{{ project.id }}">{{ project.name }}</a> — {{
+        project.status }}</li>
+    {% else %}
+    <li>No projects yet.</li>
+    {% endfor %}
+</ul>
+
+<h3>Create New Project</h3>
+{% if error %}<p class="error">{{ error }}</p>{% endif %}
+<form method="POST" action="/organizations/{{ organization_id }}/projects">
+    <label>Name:</label>
+    <input type="text" name="name" required>
+    <button type="submit">Create</button>
+</form>
+{% endblock %}

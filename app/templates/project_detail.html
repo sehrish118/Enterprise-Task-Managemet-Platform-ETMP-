@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% block title %}{{ project.name }} - ETMP{% endblock %}
+{% block content %}
+<a href="/organizations/{{ project.organization_id }}/projects" class="back-link">← Projects</a>
+<h2>{{ project.name }}</h2>
+<p>Status: {{ project.status }}</p>
+
+<form method="POST" action="/organizations/{{ project.organization_id }}/projects/{{ project.id }}/update">
+    <label>Rename:</label>
+    <input type="text" name="name" value="{{ project.name }}" required>
+    <label>Status:</label>
+    <select name="status">
+        <option value="ACTIVE" {% if project.status=="ACTIVE" %}selected{% endif %}>Active</option>
+        <option value="ON_HOLD" {% if project.status=="ON_HOLD" %}selected{% endif %}>On Hold</option>
+        <option value="COMPLETED" {% if project.status=="COMPLETED" %}selected{% endif %}>Completed</option>
+        <option value="ARCHIVED" {% if project.status=="ARCHIVED" %}selected{% endif %}>Archived</option>
+    </select>
+    <button type="submit">Update</button>
+</form>
+
+<form method="POST" action="/organizations/{{ project.organization_id }}/projects/{{ project.id }}/delete">
+    <button type="submit" style="background:#dc2626;">Delete Project</button>
+</form>
+
+<a href="/organizations/{{ project.organization_id }}/projects/{{ project.id }}/tasks">View Tasks →</a>
+
+<h3>Members</h3>
+<ul>
+    {% for m, name in members %}
+    <li>{{ name }} — {{ m.role.value }}</li>
+    {% else %}
+    <li>No members yet.</li>
+    {% endfor %}
+</ul>
+
+<h3>Add Member</h3>
+<p style="font-size: 13px; color: #666;">
+    User doesn't have an account yet?
+    <a href="/register" target="_blank">Register them here</a>
+    (opens in a new tab so your session stays active), then add them below.
+</p>
+{% if error %}<p class="error">{{ error }}</p>{% endif %}
+<form method="POST" action="/organizations/{{ project.organization_id }}/projects/{{ project.id }}/members">
+    <label>Email:</label>
+    <input type="email" name="email" required>
+    <label>Role:</label>
+    <select name="role">
+        <option value="MEMBER">Member</option>
+        <option value="PROJECT_MANAGER">Project Manager</option>
+    </select>
+    <button type="submit">Add</button>
+</form>
+{% endblock %}

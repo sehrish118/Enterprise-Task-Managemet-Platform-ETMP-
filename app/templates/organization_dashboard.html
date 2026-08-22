@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block title %}Org Dashboard - ETMP{% endblock %}
+{% block content %}
+<a href="/organizations/{{ organization.id }}" class="back-link">← Organization</a>
+<h2>{{ organization.name }} — Dashboard</h2>
+
+<div class="stats">
+    <p>Projects: {{ dashboard.total_projects }}</p>
+    <p>Active Projects: {{ dashboard.active_projects }}</p>
+    <p>Tasks: {{ dashboard.total_tasks }}</p>
+    <p>Members: {{ dashboard.total_members }}</p>
+</div>
+
+<h3>Tasks by Priority</h3>
+<ul>
+    {% for priority, count in dashboard.tasks_by_priority.items() %}
+    <li>{{ priority }}: {{ count }}</li>
+    {% else %}
+    <li>No tasks yet.</li>
+    {% endfor %}
+</ul>
+
+<a href="/organizations/{{ organization.id }}/activity-logs">View Activity Logs →</a>
+{% endblock %}

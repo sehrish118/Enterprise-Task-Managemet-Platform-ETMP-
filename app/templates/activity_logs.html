@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block title %}Activity Logs - ETMP{% endblock %}
+{% block content %}
+<a href="/organizations/{{ organization_id }}/dashboard" class="back-link">← Dashboard</a>
+<h2>Activity Logs</h2>
+
+<ul>
+    {% for log in logs %}
+    <li>{{ log.action }} — {{ log.entity_type }} ({{ log.created_at }})</li>
+    {% else %}
+    <li>No activity yet.</li>
+    {% endfor %}
+</ul>
+{% endblock %}
