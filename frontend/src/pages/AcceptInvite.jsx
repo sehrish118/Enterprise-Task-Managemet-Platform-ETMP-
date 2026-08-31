@@ -9,8 +9,8 @@ export default function AcceptInvite() {
     const token = searchParams.get("token");
     const navigate = useNavigate();
 
-    const [fullName, setFullName] = useState("");
     const [password, setPassword] = useState("");
+    const [confirmPassword, setConfirmPassword] = useState("");
     const [error, setError] = useState("");
     const [loading, setLoading] = useState(false);
 
@@ -29,17 +29,22 @@ export default function AcceptInvite() {
     const handleSubmit = async (e) => {
         e.preventDefault();
         setError("");
+
+        if (password !== confirmPassword) {
+            setError("Passwords do not match!");
+            return;
+        }
+
         setLoading(true);
 
         try {
             await client.post("/auth/accept-invite", {
                 token: token,
-                full_name: fullName,
                 password: password,
+                confirm_password: confirmPassword,
             });
 
-            // Accept hone ke baad login page par redirect kar dein
-            alert("Account created and added to the organization! Please login now.");
+            alert("Password set successfully! Redirecting to login.");
             navigate("/login");
         } catch (err) {
             setError(err.response?.data?.detail || "Failed to accept invitation or token expired.");
@@ -52,30 +57,19 @@ export default function AcceptInvite() {
         <div className="min-h-screen flex items-center justify-center bg-slate-50 px-4">
             <Card className="max-w-md w-full p-6">
                 <div className="mb-6 text-center">
-                    <h1 className="text-2xl font-bold text-slate-800">Join Your Team</h1>
-                    <p className="text-slate-500 text-sm mt-1">Complete your profile to accept the invitation</p>
+                    <h1 className="text-2xl font-bold text-slate-800">Set Your Password</h1>
+                    <p className="text-slate-500 text-sm mt-1">Set a password to complete your account setup</p>
                 </div>
 
                 {error && <div className="mb-4 px-3 py-2 bg-red-50 text-red-600 text-sm rounded-lg">{error}</div>}
 
                 <form onSubmit={handleSubmit} className="space-y-4">
                     <div>
-                        <label className="block text-sm font-medium text-slate-600 mb-1">Full Name</label>
-                        <input
-                            type="text"
-                            required
-                            value={fullName}
-                            onChange={(e) => setFullName(e.target.value)}
-                            placeholder="John Doe"
-                            className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        />
-                    </div>
-
-                    <div>
-                        <label className="block text-sm font-medium text-slate-600 mb-1">Password</label>
+                        <label className="block text-sm font-medium text-slate-600 mb-1">New Password</label>
                         <input
                             type="password"
                             required
+                            minLength={8}
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
                             placeholder="••••••••"
@@ -83,8 +77,21 @@ export default function AcceptInvite() {
                         />
                     </div>
 
+                    <div>
+                        <label className="block text-sm font-medium text-slate-600 mb-1">Confirm Password</label>
+                        <input
+                            type="password"
+                            required
+                            minLength={8}
+                            value={confirmPassword}
+                            onChange={(e) => setConfirmPassword(e.target.value)}
+                            placeholder="••••••••"
+                            className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        />
+                    </div>
+
                     <Button type="submit" disabled={loading} className="w-full py-2.5">
-                        {loading ? "Joining..." : "Accept Invitation & Create Account"}
+                        {loading ? "Setting Password..." : "Set Password & Proceed to Login"}
                     </Button>
                 </form>
             </Card>

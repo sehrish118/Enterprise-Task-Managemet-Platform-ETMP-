@@ -211,15 +211,15 @@ class AuthService:
 
         return create_access_token(user.id)
 
-    async def accept_invitation(
-        self, *, token: str, full_name: str, password: str
-    ) -> User:
+    async def accept_invitation(self, *, token: str, password: str) -> User:
         # Decode invitation token
         payload = decode_invite_token(token)
         if not payload:
             raise InvalidTokenError("Invalid or expired invitation token.")
 
         email = payload["sub"]
+        # Extract full_name encoded inside the token by inviter
+        full_name = payload.get("full_name", "")
         organization_id = uuid.UUID(payload["org_id"])
         team_id = uuid.UUID(payload["team_id"])
         role_str = payload.get("role", "MEMBER")

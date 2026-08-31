@@ -85,7 +85,7 @@ import OrgDashboard from "./pages/OrgDashboard";
 import ActivityLogs from "./pages/ActivityLogs";
 import { ThemeProvider } from "./context/ThemeContext";
 import AcceptInvite from "./pages/AcceptInvite";
-
+import Assistant from "./pages/Assistant";
 function App() {
   return (
     <ThemeProvider>
@@ -113,10 +113,14 @@ function App() {
               <Route path="/organizations/:orgId/projects" element={<Projects />} />
               <Route path="/organizations/:orgId/projects/:projectId" element={<ProjectDetail />} />
               <Route path="/organizations/:orgId/projects/:projectId/tasks" element={<Tasks />} />
-              <Route path="/organizations/:orgId/projects/:projectId/tasks/:taskId" element={<TaskDetail />} />
+              <Route 
+  path="/organizations/:orgId/projects/:projectId/tasks/:taskId" 
+  element={<TaskDetail />} 
+/>
               <Route path="/notifications" element={<Notifications />} />
               <Route path="/profile" element={<Profile />} />
               <Route path="/organizations/:orgId/dashboard" element={<OrgDashboard />} />
+              <Route path="/organizations/:orgId/assistant" element={<Assistant />} />
               <Route path="/organizations/:orgId/activity-logs" element={<ActivityLogs />} />
             </Route>
 

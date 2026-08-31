@@ -233,3 +233,19 @@ class TeamRepository:
             TeamMember.team_id == team_id, TeamMember.user_id == user_id
         )
         await self.session.execute(stmt)
+
+    async def list_teams_for_user(
+        self, *, organization_id: uuid.UUID, user_id: uuid.UUID
+    ) -> list[Team]:
+        """Teams the given user is a member of, within this organization."""
+        stmt = (
+            select(Team)
+            .join(TeamMember, TeamMember.team_id == Team.id)
+            .where(
+                Team.organization_id == organization_id,
+                Team.deleted_at.is_(None),
+                TeamMember.user_id == user_id,
+            )
+        )
+        result = await self.session.execute(stmt)
+        return list(result.scalars().all())

@@ -353,6 +353,7 @@ from app.schemas.team import (
     TeamUpdate,
 )
 from app.services.team_service import TeamService
+from app.schemas.team import InviteResponse
 
 router = APIRouter(prefix="/organizations/{organization_id}/teams", tags=["teams"])
 
@@ -414,6 +415,39 @@ async def delete_team(
     await service.delete_team(team_id)
 
 
+# @router.post("/{team_id}/invite", status_code=status.HTTP_200_OK)
+# async def invite_team_member(
+#     organization_id: uuid.UUID,
+#     team_id: uuid.UUID,
+#     payload: AddTeamMemberRequest,
+#     background_tasks: BackgroundTasks,
+#     current_user: Annotated[User, Depends(get_current_user)],
+#     db: Annotated[AsyncSession, Depends(get_db)],
+#     _: Annotated[None, Depends(require_permission(Permissions.TEAM_MANAGE_MEMBERS))],
+# ) -> dict:
+#     service = TeamService(db)
+#     clean_email = payload.email.strip().lower()
+#     try:
+#         return await service.send_team_invitation(
+#             organization_id=organization_id,
+#             team_id=team_id,
+#             email=clean_email,
+#             role=payload.role,
+#             inviter=current_user,
+#             background_tasks=background_tasks,
+#         )
+#     except (
+#         UserAlreadyTeamMemberError,
+#         UserNotFoundError,
+#         UserDeactivatedError,
+#     ) as e:
+#         raise HTTPException(
+#             status_code=status.HTTP_400_BAD_REQUEST, detail=str(e)
+#         ) from e
+#     except TeamNotFoundError as e:
+#         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e)) from e
+
+
 @router.post("/{team_id}/invite", status_code=status.HTTP_200_OK)
 async def invite_team_member(
     organization_id: uuid.UUID,
@@ -426,11 +460,13 @@ async def invite_team_member(
 ) -> dict:
     service = TeamService(db)
     clean_email = payload.email.strip().lower()
+    clean_full_name = payload.full_name.strip()
     try:
         return await service.send_team_invitation(
             organization_id=organization_id,
             team_id=team_id,
             email=clean_email,
+            full_name=clean_full_name,
             role=payload.role,
             inviter=current_user,
             background_tasks=background_tasks,

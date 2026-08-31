@@ -1,13 +1,12 @@
 import { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
-import { Users, ArrowLeft, UserPlus } from "lucide-react";
+import { Users, ArrowLeft, UserPlus,MessageSquare  } from "lucide-react";
 import client from "../api/client";
 import Card from "../components/Card";
 import Button from "../components/Button";
 import { useAuth } from "../context/AuthContext";
 import { useNavigate } from "react-router-dom";
 import { Info } from "lucide-react";
-
 
 export default function OrganizationDetail() {
     const { orgId } = useParams();
@@ -156,16 +155,25 @@ export default function OrganizationDetail() {
         )}
 
         <div className="flex gap-3 mt-5">
-            <Link to={`/organizations/${orgId}/teams`}>
-                <Button variant="secondary">Teams</Button>
-            </Link>
-            <Link to={`/organizations/${orgId}/projects`}>
-                <Button variant="secondary">Projects</Button>
-            </Link>
-            <Link to={`/organizations/${orgId}/dashboard`}>
-                <Button variant="secondary">Dashboard</Button>
-            </Link>
-        </div>
+    <Link to={`/organizations/${orgId}/teams`}>
+        <Button variant="secondary">Teams</Button>
+    </Link>
+    <Link to={`/organizations/${orgId}/projects`}>
+        <Button variant="secondary">Projects</Button>
+    </Link>
+    {(myRole === "Owner" || myRole === "Admin") && (
+    <Link to={`/organizations/${orgId}/dashboard`}>
+        <Button variant="secondary">Dashboard</Button>
+    </Link>
+)}
+    <Link to={`/organizations/${orgId}/assistant`}>
+        <Button variant="secondary">
+            <span className="flex items-center gap-2">
+                <MessageSquare size={16} /> Assistant
+            </span>
+        </Button>
+    </Link>
+</div>
 
         {myRole === "Member" && (
             <Card className="mt-4">
@@ -185,7 +193,7 @@ export default function OrganizationDetail() {
 
         {/* Members List Section */}
         <div className="mt-8">
-            <div className="flex justify-between items-center mb-3">
+                        {/* <div className="flex justify-between items-center mb-3">
                 <h2 className="text-lg font-semibold text-slate-800">Members</h2>
                 {(myRole === "Owner" || myRole === "Admin") && (
                     <Button onClick={() => setShowAddForm(!showAddForm)}>
@@ -194,7 +202,8 @@ export default function OrganizationDetail() {
                         </span>
                     </Button>
                 )}
-            </div>
+            </div> */}
+
 
             {/* Add Member Form (Only for Owner/Admin) */}
             {showAddForm && (myRole === "Owner" || myRole === "Admin") && (

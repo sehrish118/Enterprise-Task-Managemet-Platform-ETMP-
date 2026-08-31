@@ -20,6 +20,9 @@ class Permissions:
     TASK_DELETE = "task:delete"
     TASK_ASSIGN = "task:assign"
 
+    # Document
+    DOCUMENT_UPLOAD = "document:upload"
+
     @classmethod
     def all_permissions(cls) -> list[str]:
         """Used by the seed script to insert every permission into the DB."""

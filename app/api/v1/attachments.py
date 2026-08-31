@@ -60,7 +60,7 @@ async def delete_attachment(
     db: Annotated[AsyncSession, Depends(get_db)],
 ) -> None:
     service = AttachmentService(db)
-    # try:
-    await service.delete_attachment(attachment_id)
-    # except AttachmentNotFoundError as e:
-    #     raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e)) from e
+    try:
+        await service.delete_attachment(attachment_id)
+    except AttachmentNotFoundError as e:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e)) from e

@@ -1,7 +1,7 @@
 import uuid
 
 from sqlalchemy.ext.asyncio import AsyncSession
-
+from fastapi import HTTPException, status
 from app.core.exceptions import (
     ProjectNameAlreadyExistsError,
     ProjectNotFoundError,
@@ -109,7 +109,12 @@ class ProjectService:
             requesting_user_id=requesting_user_id,
             organization_id=organization_id,
         )
+        # 1. Project soft delete karein
         await self.project_repo.soft_delete(project)
+
+        # 2. Project ke tamam tasks ko bhi soft-delete karein
+        await self.project_repo.soft_delete_project_tasks(project_id)
+
         await self.session.commit()
 
     async def list_projects(
@@ -176,23 +181,53 @@ class ProjectService:
         user_id: uuid.UUID,
         requesting_user_id: uuid.UUID,
     ) -> None:
-        # 1. Check if project exists & requesting user has access
-        await self.get_project(
-            project_id,
-            requesting_user_id=requesting_user_id,
-            organization_id=organization_id,
-        )
+        # 1. Fetch Project Members
+        members = await self.project_repo.list_members(project_id)
 
-        # 2. Check if user is actually a member of the project
-        membership = await self.project_repo.get_membership(
-            project_id=project_id, user_id=user_id
-        )
-        if membership is None:
-            raise ProjectMemberNotFoundError(
-                f"User '{user_id}' is not a member of this project"
+        # 2. Request bhejne wale ka role check karein
+        requester = next((m for m in members if m.user_id == requesting_user_id), None)
+
+        if not requester:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="You are not a member of this project",
             )
 
-        # 3. Remove member & commit session
+        # AUTHORIZATION CHECK: Sirf PROJECT_MANAGER ya OWNER hi remove kar sakta hai
+        is_manager = requester.role in ["PROJECT_MANAGER", "OWNER", "LEAD"]
+        if not is_manager:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Permission denied. Only Project Managers can remove members.",
+            )
+
+        # 3. Target member verification
+        target_member = next((m for m in members if m.user_id == user_id), None)
+        if not target_member:
+            raise ProjectMemberNotFoundError(f"User is not a member of this project")
+
+        # 4. Rules Guard
+        if len(members) == 1:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Cannot remove the last member. Delete project instead.",
+            )
+
+        if (
+            target_member.role in ["PROJECT_MANAGER", "OWNER"]
+            and target_member.user_id != requesting_user_id
+        ):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="You cannot remove another Manager/Owner.",
+            )
+
+        # 5. Member ke project tasks se assignments remove karein
+        await self.project_repo.unassign_user_from_project_tasks(
+            project_id=project_id, user_id=user_id
+        )
+
+        # 6. DB se Delete execute karein
         await self.project_repo.remove_member(project_id=project_id, user_id=user_id)
         await self.session.commit()
 

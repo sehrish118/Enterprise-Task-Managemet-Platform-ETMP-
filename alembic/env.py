@@ -1,4 +1,3 @@
-
 """
 Alembic migration environment — configured for async SQLAlchemy.
 
@@ -39,11 +38,7 @@ target_metadata = Base.metadata
 
 
 def run_migrations_offline() -> None:
-    """
-    Generate SQL scripts without a live DB connection.
-    Used for CI pipelines or generating .sql files to hand off to a DBA
-    — not something we'll use day-to-day, but kept for completeness.
-    """
+
     url = settings.DATABASE_URL
     context.configure(
         url=url,
@@ -62,10 +57,7 @@ def do_run_migrations(connection) -> None:
 
 
 async def run_migrations_online() -> None:
-    """
-    The path we'll actually use — runs migrations against our live,
-    already-configured async engine.
-    """
+
     connectable: AsyncEngine = engine
 
     async with connectable.connect() as connection:

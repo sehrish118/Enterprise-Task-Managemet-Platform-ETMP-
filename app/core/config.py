@@ -19,6 +19,7 @@ class Settings(BaseSettings):
     APP_ENV: str = "development"
     DEBUG: bool = True
     API_V1_PREFIX: str = "/api/v1"
+    UPLOAD_DIR: str = "uploads"
 
     # ── Database ─────────────────────────────────────
     DATABASE_URL: str
@@ -37,6 +38,7 @@ class Settings(BaseSettings):
     SMTP_PASSWORD: str = ""
     EMAILS_FROM_EMAIL: str | None = None
     FRONTEND_URL: str = "http://localhost:5173"
+    GROQ_API_KEY: str = ""
 
     # ── CORS ─────────────────────────────────────────
 

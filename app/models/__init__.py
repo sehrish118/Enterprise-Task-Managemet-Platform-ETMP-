@@ -25,6 +25,10 @@ from app.models.attachment import Attachment
 from app.models.notification_type import NotificationType
 from app.models.notification import Notification
 from app.models.activity_log import ActivityLog
+from app.models.document_embedding import DocumentEmbedding
+from app.models.document import Document
+from app.models.chat_session import ChatSession
+from app.models.chat_message import ChatMessage
 
 __all__ = [
     "Organization",
@@ -45,4 +49,8 @@ __all__ = [
     "NotificationType",
     "Notification",
     "ActivityLog",
+    "DocumentEmbedding",
+    "Document",
+    "ChatSession",
+    "ChatMessage",
 ]

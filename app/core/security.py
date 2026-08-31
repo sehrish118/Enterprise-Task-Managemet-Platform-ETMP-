@@ -90,6 +90,7 @@ def decode_token(token: str, expected_type: TokenType) -> UUID:
 
 def create_invite_token(
     email: str,
+    full_name: str,
     organization_id: uuid.UUID,
     team_id: uuid.UUID,
     role: str = "MEMBER",
@@ -97,6 +98,7 @@ def create_invite_token(
     expire = datetime.now(timezone.utc) + timedelta(hours=48)
     payload = {
         "sub": email,
+        "full_name": full_name,
         "org_id": str(organization_id),
         "team_id": str(team_id),
         "role": role,

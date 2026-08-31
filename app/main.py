@@ -19,6 +19,34 @@ from app.api.v1 import (
 from app.middleware.rate_limit import RateLimitMiddleware
 from app.middleware.request_logging import RequestLoggingMiddleware
 from app.core.exception_handlers import register_exception_handlers
+from app.api.v1 import documents as documents_router
+from app.api.v1 import chat as chat_router
+
+# app/main.py
+from fastapi import Request, status
+from fastapi.exceptions import RequestValidationError
+from fastapi.responses import JSONResponse
+
+app = FastAPI()
+
+
+@app.exception_handler(RequestValidationError)
+async def validation_exception_handler(request: Request, exc: RequestValidationError):
+    errors = exc.errors()
+    for err in errors:
+        # Invalid UUID format like 'undefined' in path parameters
+        if err.get("type") == "uuid_parsing" and "undefined" in str(err.get("input")):
+            return JSONResponse(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                content={
+                    "detail": "Invalid UUID parameter provided in URL path. Received 'undefined'."
+                },
+            )
+
+    return JSONResponse(
+        status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+        content={"detail": errors},
+    )
 
 
 configure_logging()
@@ -64,6 +92,8 @@ def create_app() -> FastAPI:
     app.include_router(notifications.router, prefix=settings.API_V1_PREFIX)
     app.include_router(activity_logs.router, prefix=settings.API_V1_PREFIX)
     app.include_router(dashboard.router, prefix=settings.API_V1_PREFIX)
+    app.include_router(documents_router.router, prefix=settings.API_V1_PREFIX)
+    app.include_router(chat_router.router, prefix=settings.API_V1_PREFIX)
 
     logger.info("Application configured", extra={"env": settings.APP_ENV})
     return app

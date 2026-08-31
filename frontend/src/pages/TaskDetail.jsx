@@ -1,277 +1,1111 @@
-import { useEffect, useState } from "react";
-import { useParams, useNavigate, Link } from "react-router-dom";
-import { ArrowLeft, Trash2, UserPlus, Paperclip } from "lucide-react";
+// // import { useEffect, useState, useCallback } from "react";
+// // import { useParams, Link, useNavigate } from "react-router-dom";
+// // import { ArrowLeft, Trash2, UserPlus, Clock, Tag } from "lucide-react";
+// // import client from "../api/client";
+// // import Card from "../components/Card";
+// // import Button from "../components/Button";
+
+// // const PRIORITY_COLORS = {
+// //   LOW: "bg-slate-100 text-slate-600",
+// //   MEDIUM: "bg-blue-50 text-blue-600",
+// //   HIGH: "bg-amber-50 text-amber-600",
+// //   URGENT: "bg-red-50 text-red-600",
+// // };
+
+// // export default function TaskDetail() {
+// //   const params = useParams();
+// //   const orgId = params.orgId || params.organizationId;
+// //   const projectId = params.projectId;
+// //   const taskId = params.taskId || params.id;
+
+// //   const navigate = useNavigate();
+
+// //   const [task, setTask] = useState(null);
+// //   const [statuses, setStatuses] = useState([]);
+// //   const [assignees, setAssignees] = useState([]);
+// //   const [loading, setLoading] = useState(true);
+// //   const [error, setError] = useState("");
+
+// //   const [assignEmail, setAssignEmail] = useState("");
+// //   const [assigning, setAssigning] = useState(false);
+// //   const [assignError, setAssignError] = useState("");
+
+// //   // UUID verification: Invalid literal strings baseline par requests block rahengi
+// //   const isValidTaskId = Boolean(
+// //     taskId && taskId !== "undefined" && taskId !== "null" && taskId.trim() !== ""
+// //   );
+
+// //   const loadTaskData = useCallback(async () => {
+// //     if (!isValidTaskId || !orgId) {
+// //       setError("Invalid Task or Organization parameters provided.");
+// //       setLoading(false);
+// //       return;
+// //     }
+
+// //     setLoading(true);
+// //     setError("");
+
+// //     try {
+// //       const taskReq = client.get(
+// //         `/organizations/${orgId}/projects/${projectId}/tasks/${taskId}`
+// //       );
+// //       const statusReq = client.get(`/organizations/${orgId}/task-statuses`);
+// //       const assigneeReq = client
+// //         .get(
+// //           `/organizations/${orgId}/projects/${projectId}/tasks/${taskId}/assignees`
+// //         )
+// //         .catch(() => ({ data: [] }));
+
+// //       const [taskRes, statusRes, assigneeRes] = await Promise.all([
+// //         taskReq,
+// //         statusReq,
+// //         assigneeReq,
+// //       ]);
+
+// //       setTask(taskRes.data);
+// //       setStatuses(statusRes.data || []);
+      
+// //       const rawAssignees = assigneeRes.data;
+// //       setAssignees(
+// //         Array.isArray(rawAssignees)
+// //           ? rawAssignees
+// //           : rawAssignees?.items || []
+// //       );
+// //     } catch (err) {
+// //       const detail = err.response?.data?.detail;
+// //       setError(
+// //         typeof detail === "string" ? detail : "Failed to load task details."
+// //       );
+// //     } finally {
+// //       setLoading(false);
+// //     }
+// //   }, [orgId, projectId, taskId, isValidTaskId]);
+
+// //   useEffect(() => {
+// //     loadTaskData();
+// //   }, [loadTaskData]);
+
+// //   // Handle Status Update
+// //   const handleStatusChange = async (newStatusId) => {
+// //     try {
+// //       const res = await client.patch(
+// //         `/organizations/${orgId}/projects/${projectId}/tasks/${taskId}`,
+// //         { status_id: newStatusId }
+// //       );
+// //       setTask(res.data);
+// //     } catch (err) {
+// //       alert(err.response?.data?.detail || "Failed to update status");
+// //     }
+// //   };
+
+// //   // Handle Task Deletion
+// //   const handleDeleteTask = async () => {
+// //     if (!window.confirm("Are you sure you want to delete this task?")) return;
+// //     try {
+// //       await client.delete(
+// //         `/organizations/${orgId}/projects/${projectId}/tasks/${taskId}`
+// //       );
+// //       navigate(`/organizations/${orgId}/projects/${projectId}/tasks`);
+// //     } catch (err) {
+// //       alert(err.response?.data?.detail || "Failed to delete task");
+// //     }
+// //   };
+
+// //   // Handle Assignee Submit
+// //   const handleAssignSubmit = async (e) => {
+// //     e.preventDefault();
+// //     if (!assignEmail.trim()) return;
+
+// //     setAssigning(true);
+// //     setAssignError("");
+
+// //     try {
+// //       await client.post(
+// //         `/organizations/${orgId}/projects/${projectId}/tasks/${taskId}/assignees`,
+// //         { email: assignEmail.trim() }
+// //       );
+// //       setAssignEmail("");
+// //       await loadTaskData();
+// //     } catch (err) {
+// //       setAssignError(
+// //         err.response?.data?.detail || "Failed to assign user to task"
+// //       );
+// //     } finally {
+// //       setAssigning(false);
+// //     }
+// //   };
+
+// //   if (!isValidTaskId) {
+// //     return (
+// //       <div className="p-6 bg-red-50 border border-red-200 rounded-lg text-red-600 text-sm space-y-3">
+// //         <p className="font-semibold">Invalid Task Request</p>
+// //         <p className="text-xs text-red-500">
+// //           The task parameter in the route is missing or evaluated to undefined.
+// //         </p>
+// //         <Link
+// //           to={`/organizations/${orgId || ""}/projects/${projectId || ""}/tasks`}
+// //           className="inline-flex items-center gap-1 text-blue-600 hover:underline font-medium text-xs"
+// //         >
+// //           <ArrowLeft size={14} /> Back to Tasks List
+// //         </Link>
+// //       </div>
+// //     );
+// //   }
+
+// //   if (loading) {
+// //     return <div className="p-4 text-slate-400 text-sm">Loading task details...</div>;
+// //   }
+
+// //   if (error) {
+// //     return (
+// //       <div className="p-6 bg-red-50 border border-red-200 rounded-lg text-red-600 text-sm space-y-2">
+// //         <p className="font-semibold">{error}</p>
+// //         <Link
+// //           to={`/organizations/${orgId}/projects/${projectId}/tasks`}
+// //           className="inline-flex items-center gap-1 text-blue-600 hover:underline font-medium"
+// //         >
+// //           <ArrowLeft size={14} /> Back to Tasks List
+// //         </Link>
+// //       </div>
+// //     );
+// //   }
+
+// //   if (!task) return null;
+
+// //   return (
+// //     <div className="max-w-4xl mx-auto space-y-6">
+// //       <div className="flex justify-between items-center">
+// //         <Link
+// //           to={`/organizations/${orgId}/projects/${projectId}/tasks`}
+// //           className="inline-flex items-center gap-1 text-sm text-blue-600 hover:underline"
+// //         >
+// //           <ArrowLeft size={14} /> Back to Tasks
+// //         </Link>
+// //         <button
+// //           onClick={handleDeleteTask}
+// //           className="text-red-600 hover:text-red-700 text-sm flex items-center gap-1 focus:outline-none"
+// //         >
+// //           <Trash2 size={16} /> Delete Task
+// //         </button>
+// //       </div>
+
+// //       <Card>
+// //         <div className="space-y-4">
+// //           <div className="flex justify-between items-start gap-4">
+// //             <h1 className="text-2xl font-bold text-slate-800">{task.title}</h1>
+// //             <span
+// //               className={`text-xs px-2.5 py-1 rounded-full font-semibold ${
+// //                 PRIORITY_COLORS[task.priority] || "bg-slate-100 text-slate-600"
+// //               }`}
+// //             >
+// //               {task.priority || "MEDIUM"}
+// //             </span>
+// //           </div>
+
+// //           <p className="text-slate-600 text-sm whitespace-pre-wrap">
+// //             {task.description || "No description provided."}
+// //           </p>
+
+// //           <div className="pt-4 border-t border-slate-100 flex flex-wrap gap-6 text-sm text-slate-500">
+// //             <div className="flex items-center gap-2">
+// //               <Tag size={16} className="text-slate-400" />
+// //               <span className="font-medium text-slate-700">Status:</span>
+// //               <select
+// //                 value={task.status_id || ""}
+// //                 onChange={(e) => handleStatusChange(e.target.value)}
+// //                 className="px-2.5 py-1 text-xs border border-slate-300 rounded-md bg-white font-medium focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer"
+// //               >
+// //                 {statuses.map((s) => (
+// //                   <option key={s.id} value={s.id}>
+// //                     {s.name}
+// //                   </option>
+// //                 ))}
+// //               </select>
+// //             </div>
+
+// //             {task.due_date && (
+// //               <div className="flex items-center gap-2">
+// //                 <Clock size={16} className="text-slate-400" />
+// //                 <span className="font-medium text-slate-700">Due:</span>
+// //                 <span>{new Date(task.due_date).toLocaleDateString()}</span>
+// //               </div>
+// //             )}
+// //           </div>
+// //         </div>
+// //       </Card>
+
+// //       <Card>
+// //         <h2 className="text-lg font-semibold text-slate-800 mb-3 flex items-center gap-2">
+// //           <UserPlus size={18} /> Assignees
+// //         </h2>
+
+// //         {assignees.length === 0 ? (
+// //           <p className="text-sm text-slate-400 mb-4">No user assigned to this task yet.</p>
+// //         ) : (
+// //           <div className="flex flex-wrap gap-2 mb-4">
+// //             {assignees.map((user) => (
+// //               <span
+// //                 key={user.id || user.user_id || user.email}
+// //                 className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-slate-100 text-slate-700 border border-slate-200"
+// //               >
+// //                 {user.user_full_name || user.full_name || user.user_email || user.email || "Assigned User"}
+// //               </span>
+// //             ))}
+// //           </div>
+// //         )}
+
+// //         <form onSubmit={handleAssignSubmit} className="flex gap-2 max-w-md">
+// //           <input
+// //             type="email"
+// //             placeholder="User email to assign..."
+// //             value={assignEmail}
+// //             onChange={(e) => setAssignEmail(e.target.value)}
+// //             required
+// //             className="flex-1 px-3 py-1.5 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+// //           />
+// //           <Button type="submit" disabled={assigning}>
+// //             {assigning ? "Assigning..." : "Assign"}
+// //           </Button>
+// //         </form>
+// //         {assignError && <p className="text-xs text-red-500 mt-2">{assignError}</p>}
+// //       </Card>
+// //     </div>
+// //   );
+// // }
+
+
+
+// import { useEffect, useState, useCallback } from "react";
+// import { useParams, Link, useNavigate } from "react-router-dom";
+// import { ArrowLeft, Trash2, UserPlus, Clock, Tag, MessageSquare, Paperclip, Send } from "lucide-react";
+// import client from "../api/client";
+// import Card from "../components/Card";
+// import Button from "../components/Button";
+
+// const PRIORITY_COLORS = {
+//   LOW: "bg-slate-100 text-slate-600",
+//   MEDIUM: "bg-blue-50 text-blue-600",
+//   HIGH: "bg-amber-50 text-amber-600",
+//   URGENT: "bg-red-50 text-red-600",
+// };
+
+// export default function TaskDetail() {
+//   const params = useParams();
+//   const orgId = params.orgId || params.organizationId;
+//   const projectId = params.projectId;
+//   const taskId = params.taskId || params.id;
+
+//   const navigate = useNavigate();
+
+//   const [task, setTask] = useState(null);
+//   const [statuses, setStatuses] = useState([]);
+//   const [assignees, setAssignees] = useState([]);
+//   const [comments, setComments] = useState([]);
+//   const [attachments, setAttachments] = useState([]);
+
+//   const [loading, setLoading] = useState(true);
+//   const [error, setError] = useState("");
+
+//   const [assignEmail, setAssignEmail] = useState("");
+//   const [assigning, setAssigning] = useState(false);
+//   const [assignError, setAssignError] = useState("");
+
+//   // Comment & Attachment States
+//   const [newComment, setNewComment] = useState("");
+//   const [commenting, setCommenting] = useState(false);
+//   const [selectedFile, setSelectedFile] = useState(null);
+//   const [uploading, setUploading] = useState(false);
+
+//   const isValidTaskId = Boolean(
+//     taskId && taskId !== "undefined" && taskId !== "null" && taskId.trim() !== ""
+//   );
+
+//   const loadTaskData = useCallback(async () => {
+//     if (!isValidTaskId || !orgId) {
+//       setError("Invalid Task or Organization parameters provided.");
+//       setLoading(false);
+//       return;
+//     }
+
+//     setLoading(true);
+//     setError("");
+
+//     try {
+//       const taskReq = client.get(
+//         `/organizations/${orgId}/projects/${projectId}/tasks/${taskId}`
+//       );
+//       const statusReq = client.get(`/organizations/${orgId}/task-statuses`);
+//       const assigneeReq = client
+//         .get(
+//           `/organizations/${orgId}/projects/${projectId}/tasks/${taskId}/assignees`
+//         )
+//         .catch(() => ({ data: [] }));
+
+//       const commentReq = client
+//         .get(`/organizations/${orgId}/projects/${projectId}/tasks/${taskId}/comments`)
+//         .catch(() => ({ data: [] }));
+
+//       const attachmentReq = client
+//         .get(`/organizations/${orgId}/projects/${projectId}/tasks/${taskId}/attachments`)
+//         .catch(() => ({ data: [] }));
+
+//       const [taskRes, statusRes, assigneeRes, commentRes, attachmentRes] = await Promise.all([
+//         taskReq,
+//         statusReq,
+//         assigneeReq,
+//         commentReq,
+//         attachmentReq,
+//       ]);
+
+//       setTask(taskRes.data);
+//       setStatuses(statusRes.data || []);
+      
+//       const rawAssignees = assigneeRes.data;
+//       setAssignees(
+//         Array.isArray(rawAssignees)
+//           ? rawAssignees
+//           : rawAssignees?.items || []
+//       );
+
+//       setComments(Array.isArray(commentRes.data) ? commentRes.data : commentRes.data?.items || []);
+//       setAttachments(Array.isArray(attachmentRes.data) ? attachmentRes.data : attachmentRes.data?.items || []);
+//     } catch (err) {
+//       const detail = err.response?.data?.detail;
+//       setError(
+//         typeof detail === "string" ? detail : "Failed to load task details."
+//       );
+//     } finally {
+//       setLoading(false);
+//     }
+//   }, [orgId, projectId, taskId, isValidTaskId]);
+
+//   useEffect(() => {
+//     loadTaskData();
+//   }, [loadTaskData]);
+
+//   // Handle Status Update
+//   const handleStatusChange = async (newStatusId) => {
+//     try {
+//       const res = await client.patch(
+//         `/organizations/${orgId}/projects/${projectId}/tasks/${taskId}`,
+//         { status_id: newStatusId }
+//       );
+//       setTask(res.data);
+//     } catch (err) {
+//       alert(err.response?.data?.detail || "Failed to update status");
+//     }
+//   };
+
+//   // Handle Task Deletion
+//   const handleDeleteTask = async () => {
+//     if (!window.confirm("Are you sure you want to delete this task?")) return;
+//     try {
+//       await client.delete(
+//         `/organizations/${orgId}/projects/${projectId}/tasks/${taskId}`
+//       );
+//       navigate(`/organizations/${orgId}/projects/${projectId}/tasks`);
+//     } catch (err) {
+//       alert(err.response?.data?.detail || "Failed to delete task");
+//     }
+//   };
+
+//   // Handle Assignee Submit
+//   const handleAssignSubmit = async (e) => {
+//     e.preventDefault();
+//     if (!assignEmail.trim()) return;
+
+//     setAssigning(true);
+//     setAssignError("");
+
+//     try {
+//       await client.post(
+//         `/organizations/${orgId}/projects/${projectId}/tasks/${taskId}/assignees`,
+//         { email: assignEmail.trim() }
+//       );
+//       setAssignEmail("");
+//       await loadTaskData();
+//     } catch (err) {
+//       setAssignError(
+//         err.response?.data?.detail || "Failed to assign user to task"
+//       );
+//     } finally {
+//       setAssigning(false);
+//     }
+//   };
+
+//   // Add Comment
+//   const handleAddComment = async (e) => {
+//     e.preventDefault();
+//     if (!newComment.trim()) return;
+//     setCommenting(true);
+//     try {
+//       await client.post(
+//         `/organizations/${orgId}/projects/${projectId}/tasks/${taskId}/comments`,
+//         { content: newComment.trim() }
+//       );
+//       setNewComment("");
+//       await loadTaskData();
+//     } catch (err) {
+//       alert(err.response?.data?.detail || "Failed to post comment");
+//     } finally {
+//       setCommenting(false);
+//     }
+//   };
+
+//   // Upload Attachment
+//   const handleFileUpload = async (e) => {
+//     e.preventDefault();
+//     if (!selectedFile) return;
+//     setUploading(true);
+//     const formData = new FormData();
+//     formData.append("file", selectedFile);
+
+//     try {
+//       await client.post(
+//         `/organizations/${orgId}/projects/${projectId}/tasks/${taskId}/attachments`,
+//         formData,
+//         { headers: { "Content-Type": "multipart/form-data" } }
+//       );
+//       setSelectedFile(null);
+//       await loadTaskData();
+//     } catch (err) {
+//       alert(err.response?.data?.detail || "Failed to upload file");
+//     } finally {
+//       setUploading(false);
+//     }
+//   };
+
+//   if (!isValidTaskId) {
+//     return (
+//       <div className="p-6 bg-red-50 border border-red-200 rounded-lg text-red-600 text-sm space-y-3">
+//         <p className="font-semibold">Invalid Task Request</p>
+//         <p className="text-xs text-red-500">
+//           The task parameter in the route is missing or evaluated to undefined.
+//         </p>
+//         <Link
+//           to={`/organizations/${orgId || ""}/projects/${projectId || ""}/tasks`}
+//           className="inline-flex items-center gap-1 text-blue-600 hover:underline font-medium text-xs"
+//         >
+//           <ArrowLeft size={14} /> Back to Tasks List
+//         </Link>
+//       </div>
+//     );
+//   }
+
+//   if (loading) {
+//     return <div className="p-4 text-slate-400 text-sm">Loading task details...</div>;
+//   }
+
+//   if (error) {
+//     return (
+//       <div className="p-6 bg-red-50 border border-red-200 rounded-lg text-red-600 text-sm space-y-2">
+//         <p className="font-semibold">{error}</p>
+//         <Link
+//           to={`/organizations/${orgId}/projects/${projectId}/tasks`}
+//           className="inline-flex items-center gap-1 text-blue-600 hover:underline font-medium"
+//         >
+//           <ArrowLeft size={14} /> Back to Tasks List
+//         </Link>
+//       </div>
+//     );
+//   }
+
+//   if (!task) return null;
+
+//   return (
+//     <div className="max-w-4xl mx-auto space-y-6 pb-12">
+//       {/* Top Header */}
+//       <div className="flex justify-between items-center">
+//         <Link
+//           to={`/organizations/${orgId}/projects/${projectId}/tasks`}
+//           className="inline-flex items-center gap-1 text-sm text-blue-600 hover:underline"
+//         >
+//           <ArrowLeft size={14} /> Back to Tasks
+//         </Link>
+//         <button
+//           onClick={handleDeleteTask}
+//           className="text-red-600 hover:text-red-700 text-sm flex items-center gap-1 focus:outline-none"
+//         >
+//           <Trash2 size={16} /> Delete Task
+//         </button>
+//       </div>
+
+//       {/* Task Information Card */}
+//       <Card>
+//         <div className="space-y-4">
+//           <div className="flex justify-between items-start gap-4">
+//             <h1 className="text-2xl font-bold text-slate-800">{task.title}</h1>
+//             <span
+//               className={`text-xs px-2.5 py-1 rounded-full font-semibold ${
+//                 PRIORITY_COLORS[task.priority] || "bg-slate-100 text-slate-600"
+//               }`}
+//             >
+//               {task.priority || "MEDIUM"}
+//             </span>
+//           </div>
+
+//           <p className="text-slate-600 text-sm whitespace-pre-wrap">
+//             {task.description || "No description provided."}
+//           </p>
+
+//           <div className="pt-4 border-t border-slate-100 flex flex-wrap gap-6 text-sm text-slate-500">
+//             <div className="flex items-center gap-2">
+//               <Tag size={16} className="text-slate-400" />
+//               <span className="font-medium text-slate-700">Status:</span>
+//               <select
+//                 value={task.status_id || ""}
+//                 onChange={(e) => handleStatusChange(e.target.value)}
+//                 className="px-2.5 py-1 text-xs border border-slate-300 rounded-md bg-white font-medium focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer"
+//               >
+//                 {statuses.map((s) => (
+//                   <option key={s.id} value={s.id}>
+//                     {s.name}
+//                   </option>
+//                 ))}
+//               </select>
+//             </div>
+
+//             {task.due_date && (
+//               <div className="flex items-center gap-2">
+//                 <Clock size={16} className="text-slate-400" />
+//                 <span className="font-medium text-slate-700">Due:</span>
+//                 <span>{new Date(task.due_date).toLocaleDateString()}</span>
+//               </div>
+//             )}
+//           </div>
+//         </div>
+//       </Card>
+
+//       {/* Assignees Card */}
+//       <Card>
+//         <h2 className="text-lg font-semibold text-slate-800 mb-3 flex items-center gap-2">
+//           <UserPlus size={18} /> Assignees
+//         </h2>
+
+//         {assignees.length === 0 ? (
+//           <p className="text-sm text-slate-400 mb-4">No user assigned to this task yet.</p>
+//         ) : (
+//           <div className="flex flex-wrap gap-2 mb-4">
+//             {assignees.map((user) => (
+//               <span
+//                 key={user.id || user.user_id || user.email}
+//                 className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-slate-100 text-slate-700 border border-slate-200"
+//               >
+//                 {user.user_full_name || user.full_name || user.user_email || user.email || "Assigned User"}
+//               </span>
+//             ))}
+//           </div>
+//         )}
+
+//         <form onSubmit={handleAssignSubmit} className="flex gap-2 max-w-md">
+//           <input
+//             type="email"
+//             placeholder="User email to assign..."
+//             value={assignEmail}
+//             onChange={(e) => setAssignEmail(e.target.value)}
+//             required
+//             className="flex-1 px-3 py-1.5 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+//           />
+//           <Button type="submit" disabled={assigning}>
+//             {assigning ? "Assigning..." : "Assign"}
+//           </Button>
+//         </form>
+//         {assignError && <p className="text-xs text-red-500 mt-2">{assignError}</p>}
+//       </Card>
+
+//       {/* Attachments Card */}
+//       <Card>
+//         <h2 className="text-lg font-semibold text-slate-800 mb-3 flex items-center gap-2">
+//           <Paperclip size={18} /> Attachments
+//         </h2>
+
+//         {attachments.length === 0 ? (
+//           <p className="text-sm text-slate-400 mb-4">No attachments uploaded yet.</p>
+//         ) : (
+//           <div className="space-y-2 mb-4">
+//             {attachments.map((att) => (
+//               <div
+//                 key={att.id}
+//                 className="flex justify-between items-center p-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm"
+//               >
+//                 <span className="font-medium text-slate-700 truncate">{att.filename || att.file_name || "Attachment"}</span>
+//                 {att.file_url && (
+//                   <a
+//                     href={att.file_url}
+//                     target="_blank"
+//                     rel="noreferrer"
+//                     className="text-xs text-blue-600 hover:underline font-medium"
+//                   >
+//                     View / Download
+//                   </a>
+//                 )}
+//               </div>
+//             ))}
+//           </div>
+//         )}
+
+//         <form onSubmit={handleFileUpload} className="flex items-center gap-2 max-w-md">
+//           <input
+//             type="file"
+//             onChange={(e) => setSelectedFile(e.target.files[0])}
+//             className="text-xs text-slate-500 file:mr-3 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 cursor-pointer"
+//           />
+//           <Button type="submit" disabled={uploading || !selectedFile}>
+//             {uploading ? "Uploading..." : "Upload"}
+//           </Button>
+//         </form>
+//       </Card>
+
+//       {/* Comments Card */}
+//       <Card>
+//         <h2 className="text-lg font-semibold text-slate-800 mb-4 flex items-center gap-2">
+//           <MessageSquare size={18} /> Comments ({comments.length})
+//         </h2>
+
+//         <div className="space-y-3 mb-6 max-h-80 overflow-y-auto">
+//           {comments.length === 0 ? (
+//             <p className="text-sm text-slate-400">No comments yet. Start the conversation!</p>
+//           ) : (
+//             comments.map((comment) => (
+//               <div key={comment.id} className="p-3 bg-slate-50 rounded-lg border border-slate-100 text-sm">
+//                 <div className="flex justify-between items-center mb-1 text-xs text-slate-500">
+//                   <span className="font-semibold text-slate-700">
+//                     {comment.user_name || comment.author || "User"}
+//                   </span>
+//                   <span>{comment.created_at ? new Date(comment.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ""}</span>
+//                 </div>
+//                 <p className="text-slate-700 whitespace-pre-wrap">{comment.content}</p>
+//               </div>
+//             ))
+//           )}
+//         </div>
+
+//         <form onSubmit={handleAddComment} className="flex gap-2">
+//           <input
+//             type="text"
+//             placeholder="Write a comment..."
+//             value={newComment}
+//             onChange={(e) => setNewComment(e.target.value)}
+//             className="flex-1 px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+//           />
+//           <Button type="submit" disabled={commenting || !newComment.trim()}>
+//             <Send size={16} />
+//           </Button>
+//         </form>
+//       </Card>
+//     </div>
+//   );
+// }
+
+
+
+import { useEffect, useState, useCallback } from "react";
+import { useParams, Link, useNavigate } from "react-router-dom";
+import { ArrowLeft, Trash2, UserPlus, Clock, Tag, MessageSquare, Paperclip, Send } from "lucide-react";
 import client from "../api/client";
 import Card from "../components/Card";
 import Button from "../components/Button";
-import { useAuth } from "../context/AuthContext";
+
+const PRIORITY_COLORS = {
+  LOW: "bg-slate-100 text-slate-600",
+  MEDIUM: "bg-blue-50 text-blue-600",
+  HIGH: "bg-amber-50 text-amber-600",
+  URGENT: "bg-red-50 text-red-600",
+};
 
 export default function TaskDetail() {
-    const { orgId, projectId, taskId } = useParams();
-    const navigate = useNavigate();
-    const { user: currentUser } = useAuth();
+  const params = useParams();
+  const orgId = params.orgId || params.organizationId;
+  const projectId = params.projectId;
+  const taskId = params.taskId || params.id;
 
-    const [task, setTask] = useState(null);
-    const [assignees, setAssignees] = useState([]);
-    const [comments, setComments] = useState([]);
-    const [attachments, setAttachments] = useState([]);
-    const [error, setError] = useState("");
+  const navigate = useNavigate();
 
-    const [title, setTitle] = useState("");
-    const [description, setDescription] = useState("");
-    const [priority, setPriority] = useState("MEDIUM");
-    const [dueDate, setDueDate] = useState("");
+  const [task, setTask] = useState(null);
+  const [statuses, setStatuses] = useState([]);
+  const [assignees, setAssignees] = useState([]);
+  const [comments, setComments] = useState([]);
+  const [attachments, setAttachments] = useState([]);
 
-    const [assignEmail, setAssignEmail] = useState("");
-    const [assignError, setAssignError] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
-    const [commentText, setCommentText] = useState("");
+  const [assignEmail, setAssignEmail] = useState("");
+  const [assigning, setAssigning] = useState(false);
+  const [assignError, setAssignError] = useState("");
 
-    const [attFilename, setAttFilename] = useState("");
-    const [attUrl, setAttUrl] = useState("");
+  const [newComment, setNewComment] = useState("");
+  const [commenting, setCommenting] = useState(false);
+  const [selectedFile, setSelectedFile] = useState(null);
+  const [uploading, setUploading] = useState(false);
 
-    const load = () => {
-        client.get(`/organizations/${orgId}/projects/${projectId}/tasks/${taskId}`).then((res) => {
-            setTask(res.data);
-            setTitle(res.data.title);
-            setDescription(res.data.description || "");
-            setPriority(res.data.priority);
-            setDueDate(res.data.due_date ? res.data.due_date.split("T")[0] : "");
-        });
-        client.get(`/organizations/${orgId}/projects/${projectId}/tasks/${taskId}/assignees`).then((res) => setAssignees(res.data));
-        client.get(`/organizations/${orgId}/tasks/${taskId}/comments`).then((res) => setComments(res.data));
-        client.get(`/organizations/${orgId}/tasks/${taskId}/attachments`).then((res) => setAttachments(res.data));
-    };
+  const isValidTaskId = Boolean(
+    taskId && taskId !== "undefined" && taskId !== "null" && taskId.trim() !== ""
+  );
 
-    useEffect(load, [orgId, projectId, taskId]);
+  const loadTaskData = useCallback(async () => {
+    if (!isValidTaskId || !orgId || !projectId) {
+      setError("Invalid Task, Project, or Organization parameters provided.");
+      setLoading(false);
+      return;
+    }
 
-    const handleUpdate = async (e) => {
-        e.preventDefault();
-        setError("");
-        try {
-            await client.patch(`/organizations/${orgId}/projects/${projectId}/tasks/${taskId}`, {
-                title, description, priority,
-                due_date: dueDate ? new Date(dueDate).toISOString() : null,
-            });
-            load();
-        } catch (err) {
-            setError(err.response?.data?.detail || "Failed to update task");
-        }
-    };
+    setLoading(true);
+    setError("");
 
-    const handleDelete = async () => {
-        if (!confirm("Delete this task?")) return;
-        try {
-            await client.delete(`/organizations/${orgId}/projects/${projectId}/tasks/${taskId}`);
-            navigate(`/organizations/${orgId}/projects/${projectId}/tasks`);
-        } catch (err) {
-            setError(err.response?.data?.detail || "Only the Project Manager can delete tasks");
-        }
-    };
+    try {
+      const taskReq = client.get(
+        `/organizations/${orgId}/projects/${projectId}/tasks/${taskId}`
+      );
+      const statusReq = client.get(`/organizations/${orgId}/task-statuses`);
+      const assigneeReq = client
+        .get(
+          `/organizations/${orgId}/projects/${projectId}/tasks/${taskId}/assignees`
+        )
+        .catch(() => ({ data: [] }));
 
-    const handleAssign = async (e) => {
-        e.preventDefault();
-        setAssignError("");
-        try {
-            await client.post(`/organizations/${orgId}/projects/${projectId}/tasks/${taskId}/assignees`, {
-                email: assignEmail,
-            });
-            setAssignEmail("");
-            load();
-        } catch (err) {
-            setAssignError(err.response?.data?.detail || "Only the Project Manager can assign tasks");
-        }
-    };
+      const commentReq = client
+        .get(`/organizations/${orgId}/projects/${projectId}/tasks/${taskId}/comments`)
+        .catch(() => ({ data: [] }));
 
-    const handleComment = async (e) => {
-        e.preventDefault();
-        try {
-            await client.post(`/organizations/${orgId}/tasks/${taskId}/comments`, { content: commentText });
-            setCommentText("");
-            load();
-        } catch (err) {
-            setError(err.response?.data?.detail || "Failed to post comment");
-        }
-    };
+      const attachmentReq = client
+        .get(`/organizations/${orgId}/projects/${projectId}/tasks/${taskId}/attachments`)
+        .catch(() => ({ data: [] }));
 
-    const handleDeleteComment = async (commentId) => {
-        try {
-            await client.delete(`/organizations/${orgId}/tasks/${taskId}/comments/${commentId}`);
-            load();
-        } catch (err) {
-            setError(err.response?.data?.detail || "Failed to delete comment");
-        }
-    };
+      const [taskRes, statusRes, assigneeRes, commentRes, attachmentRes] = await Promise.all([
+        taskReq,
+        statusReq,
+        assigneeReq,
+        commentReq,
+        attachmentReq,
+      ]);
 
-    const handleAddAttachment = async (e) => {
-        e.preventDefault();
-        try {
-            await client.post(`/organizations/${orgId}/tasks/${taskId}/attachments`, null, {
-                params: {
-                    original_filename: attFilename,
-                    mime_type: "application/octet-stream",
-                    size: 0,
-                    file_url: attUrl,
-                },
-            });
-            setAttFilename("");
-            setAttUrl("");
-            load();
-        } catch (err) {
-            setError(err.response?.data?.detail || "Failed to add attachment");
-        }
-    };
+      setTask(taskRes.data);
+      setStatuses(statusRes.data || []);
+      
+      const rawAssignees = assigneeRes.data;
+      setAssignees(
+        Array.isArray(rawAssignees)
+          ? rawAssignees
+          : rawAssignees?.items || []
+      );
 
-    if (!task) return <p className="text-slate-400 text-sm">Loading...</p>;
+      setComments(Array.isArray(commentRes.data) ? commentRes.data : commentRes.data?.items || []);
+      setAttachments(Array.isArray(attachmentRes.data) ? attachmentRes.data : attachmentRes.data?.items || []);
+    } catch (err) {
+      const detail = err.response?.data?.detail;
+      setError(
+        typeof detail === "string" ? detail : "Failed to load task details."
+      );
+    } finally {
+      setLoading(false);
+    }
+  }, [orgId, projectId, taskId, isValidTaskId]);
 
+  useEffect(() => {
+    loadTaskData();
+  }, [loadTaskData]);
+
+  const handleStatusChange = async (newStatusId) => {
+    try {
+      const res = await client.patch(
+        `/organizations/${orgId}/projects/${projectId}/tasks/${taskId}`,
+        { status_id: newStatusId }
+      );
+      setTask(res.data);
+    } catch (err) {
+      alert(err.response?.data?.detail || "Failed to update status");
+    }
+  };
+
+  const handleDeleteTask = async () => {
+    if (!window.confirm("Are you sure you want to delete this task?")) return;
+    try {
+      await client.delete(
+        `/organizations/${orgId}/projects/${projectId}/tasks/${taskId}`
+      );
+      navigate(`/organizations/${orgId}/projects/${projectId}/tasks`);
+    } catch (err) {
+      alert(err.response?.data?.detail || "Failed to delete task");
+    }
+  };
+
+  const handleAssignSubmit = async (e) => {
+    e.preventDefault();
+    if (!assignEmail.trim()) return;
+
+    setAssigning(true);
+    setAssignError("");
+
+    try {
+      await client.post(
+        `/organizations/${orgId}/projects/${projectId}/tasks/${taskId}/assignees`,
+        { email: assignEmail.trim() }
+      );
+      setAssignEmail("");
+      await loadTaskData();
+    } catch (err) {
+      setAssignError(
+        err.response?.data?.detail || "Failed to assign user to task"
+      );
+    } finally {
+      setAssigning(false);
+    }
+  };
+
+  const handleAddComment = async (e) => {
+    e.preventDefault();
+    if (!newComment.trim()) return;
+    setCommenting(true);
+    try {
+      await client.post(
+        `/organizations/${orgId}/projects/${projectId}/tasks/${taskId}/comments`,
+        { content: newComment.trim() }
+      );
+      setNewComment("");
+      await loadTaskData();
+    } catch (err) {
+      alert(err.response?.data?.detail || "Failed to post comment");
+    } finally {
+      setCommenting(false);
+    }
+  };
+
+  const handleFileUpload = async (e) => {
+    e.preventDefault();
+    if (!selectedFile) return;
+    setUploading(true);
+    const formData = new FormData();
+    formData.append("file", selectedFile);
+
+    try {
+      await client.post(
+        `/organizations/${orgId}/projects/${projectId}/tasks/${taskId}/attachments`,
+        formData,
+        { headers: { "Content-Type": "multipart/form-data" } }
+      );
+      setSelectedFile(null);
+      await loadTaskData();
+    } catch (err) {
+      alert(err.response?.data?.detail || "Failed to upload file");
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  if (!isValidTaskId) {
     return (
-        <div>
-            <Link to={`/organizations/${orgId}/projects/${projectId}/tasks`} className="inline-flex items-center gap-1 text-sm text-blue-600 mb-4 hover:underline">
-                <ArrowLeft size={14} /> Tasks
-            </Link>
-
-            {error && <div className="mb-4 px-3 py-2 bg-red-50 text-red-600 text-sm rounded-lg">{error}</div>}
-
-            <Card>
-                <form onSubmit={handleUpdate} className="space-y-3">
-                    <input
-                        value={title}
-                        onChange={(e) => setTitle(e.target.value)}
-                        className="w-full text-lg font-semibold px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    />
-                    <textarea
-                        value={description}
-                        onChange={(e) => setDescription(e.target.value)}
-                        rows={2}
-                        className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    />
-                    <div className="flex gap-3 items-end">
-                        <select
-                            value={priority}
-                            onChange={(e) => setPriority(e.target.value)}
-                            className="px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        >
-                            <option value="LOW">Low</option>
-                            <option value="MEDIUM">Medium</option>
-                            <option value="HIGH">High</option>
-                            <option value="URGENT">Urgent</option>
-                        </select>
-                        <input
-  type="date"
-  value={dueDate}
-  onChange={(e) => setDueDate(e.target.value)}
-  className="px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-/>
-                        <Button type="submit">Save</Button>
-                        <Button type="button" variant="danger" onClick={handleDelete}>
-                            <Trash2 size={16} />
-                        </Button>
-                    </div>
-                </form>
-            </Card>
-
-            {/* Assignees */}
-            <h2 className="text-lg font-semibold text-slate-800 mt-6 mb-2">Assignees</h2>
-            <Card>
-                {assignError && <div className="mb-3 px-3 py-2 bg-red-50 text-red-600 text-sm rounded-lg">{assignError}</div>}
-                <form onSubmit={handleAssign} className="flex gap-3 items-end mb-3">
-                    <div className="flex-1">
-                        <input
-                            type="email"
-                            placeholder="user@example.com"
-                            value={assignEmail}
-                            onChange={(e) => setAssignEmail(e.target.value)}
-                            required
-                            className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        />
-                    </div>
-                    <Button type="submit">
-                        <span className="flex items-center gap-2"><UserPlus size={16} /> Assign</span>
-                    </Button>
-                </form>
-                {assignees.length === 0 ? (
-                    <p className="text-sm text-slate-400">No one assigned yet.</p>
-                ) : (
-                    <ul className="space-y-1">
-                        {assignees.map((a) => (
-                            <li key={a.id} className="text-sm text-slate-700">{a.user_full_name}</li>
-                        ))}
-                    </ul>
-                )}
-            </Card>
-
-            {/* Attachments */}
-            <h2 className="text-lg font-semibold text-slate-800 mt-6 mb-2 flex items-center gap-2">
-                <Paperclip size={18} /> Attachments
-            </h2>
-            <Card>
-                <form onSubmit={handleAddAttachment} className="flex gap-3 items-end mb-3">
-                    <input
-                        placeholder="File name"
-                        value={attFilename}
-                        onChange={(e) => setAttFilename(e.target.value)}
-                        required
-                        className="flex-1 px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    />
-                    <input
-                        placeholder="https://..."
-                        value={attUrl}
-                        onChange={(e) => setAttUrl(e.target.value)}
-                        required
-                        className="flex-1 px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    />
-                    <Button type="submit">Add</Button>
-                </form>
-                {attachments.length === 0 ? (
-                    <p className="text-sm text-slate-400">No attachments yet.</p>
-                ) : (
-                    <ul className="space-y-1">
-                        {attachments.map((a) => (
-                            <li key={a.id}>
-                                <a href={a.file_url} target="_blank" rel="noreferrer" className="text-sm text-blue-600 hover:underline">
-                                    {a.original_filename}
-                                </a>
-                            </li>
-                        ))}
-                    </ul>
-                )}
-            </Card>
-
-            {/* Comments */}
-            <h2 className="text-lg font-semibold text-slate-800 mt-6 mb-2">Comments</h2>
-            <Card>
-                <form onSubmit={handleComment} className="flex gap-3 items-end mb-4">
-                    <input
-                        placeholder="Write a comment..."
-                        value={commentText}
-                        onChange={(e) => setCommentText(e.target.value)}
-                        required
-                        className="flex-1 px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    />
-                    <Button type="submit">Post</Button>
-                </form>
-                {comments.length === 0 ? (
-                    <p className="text-sm text-slate-400">No comments yet.</p>
-                ) : (
-                    <ul className="divide-y divide-slate-100">
-                        {comments.map((c) => (
-                            <li key={c.id} className="py-2 flex justify-between items-start">
-                                <div>
-                                    <p className="text-sm text-slate-700"><span className="font-medium">{c.user_full_name}:</span> {c.content}</p>
-                                </div>
-                                {c.user_id === currentUser?.id && (
-                                    <button
-                                        onClick={() => handleDeleteComment(c.id)}
-                                        className="text-xs text-red-500 hover:underline ml-3"
-                                    >
-                                        Delete
-                                    </button>
-                                )}
-                            </li>
-                        ))}
-                    </ul>
-                )}
-            </Card>
-        </div>
+      <div className="p-6 bg-red-50 border border-red-200 rounded-lg text-red-600 text-sm space-y-3">
+        <p className="font-semibold">Invalid Task Request</p>
+        <p className="text-xs text-red-500">
+          The task parameter in the route is missing or evaluated to undefined.
+        </p>
+        <Link
+          to={`/organizations/${orgId || ""}/projects/${projectId || ""}/tasks`}
+          className="inline-flex items-center gap-1 text-blue-600 hover:underline font-medium text-xs"
+        >
+          <ArrowLeft size={14} /> Back to Tasks List
+        </Link>
+      </div>
     );
+  }
+
+  if (loading) {
+    return <div className="p-4 text-slate-400 text-sm">Loading task details...</div>;
+  }
+
+  if (error) {
+    return (
+      <div className="p-6 bg-red-50 border border-red-200 rounded-lg text-red-600 text-sm space-y-2">
+        <p className="font-semibold">{error}</p>
+        <Link
+          to={`/organizations/${orgId}/projects/${projectId}/tasks`}
+          className="inline-flex items-center gap-1 text-blue-600 hover:underline font-medium"
+        >
+          <ArrowLeft size={14} /> Back to Tasks List
+        </Link>
+      </div>
+    );
+  }
+
+  if (!task) return null;
+
+  return (
+    <div className="max-w-4xl mx-auto space-y-6 pb-12">
+      <div className="flex justify-between items-center">
+        <Link
+          to={`/organizations/${orgId}/projects/${projectId}/tasks`}
+          className="inline-flex items-center gap-1 text-sm text-blue-600 hover:underline"
+        >
+          <ArrowLeft size={14} /> Back to Tasks
+        </Link>
+        <button
+          onClick={handleDeleteTask}
+          className="text-red-600 hover:text-red-700 text-sm flex items-center gap-1 focus:outline-none"
+        >
+          <Trash2 size={16} /> Delete Task
+        </button>
+      </div>
+
+      <Card>
+        <div className="space-y-4">
+          <div className="flex justify-between items-start gap-4">
+            <h1 className="text-2xl font-bold text-slate-800">{task.title}</h1>
+            <span
+              className={`text-xs px-2.5 py-1 rounded-full font-semibold ${
+                PRIORITY_COLORS[task.priority] || "bg-slate-100 text-slate-600"
+              }`}
+            >
+              {task.priority || "MEDIUM"}
+            </span>
+          </div>
+
+          <p className="text-slate-600 text-sm whitespace-pre-wrap">
+            {task.description || "No description provided."}
+          </p>
+
+          <div className="pt-4 border-t border-slate-100 flex flex-wrap gap-6 text-sm text-slate-500">
+            <div className="flex items-center gap-2">
+              <Tag size={16} className="text-slate-400" />
+              <span className="font-medium text-slate-700">Status:</span>
+              <select
+                value={task.status_id || ""}
+                onChange={(e) => handleStatusChange(e.target.value)}
+                className="px-2.5 py-1 text-xs border border-slate-300 rounded-md bg-white font-medium focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer"
+              >
+                {statuses.map((s) => (
+                  <option key={s.id} value={s.id}>
+                    {s.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {task.due_date && (
+              <div className="flex items-center gap-2">
+                <Clock size={16} className="text-slate-400" />
+                <span className="font-medium text-slate-700">Due:</span>
+                <span>{new Date(task.due_date).toLocaleDateString()}</span>
+              </div>
+            )}
+          </div>
+        </div>
+      </Card>
+
+      <Card>
+        <h2 className="text-lg font-semibold text-slate-800 mb-3 flex items-center gap-2">
+          <UserPlus size={18} /> Assignees
+        </h2>
+
+        {assignees.length === 0 ? (
+          <p className="text-sm text-slate-400 mb-4">No user assigned to this task yet.</p>
+        ) : (
+          <div className="flex flex-wrap gap-2 mb-4">
+            {assignees.map((user) => (
+              <span
+                key={user.id || user.user_id || user.email}
+                className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-slate-100 text-slate-700 border border-slate-200"
+              >
+                {user.user_full_name || user.full_name || user.user_email || user.email || "Assigned User"}
+              </span>
+            ))}
+          </div>
+        )}
+
+        <form onSubmit={handleAssignSubmit} className="flex gap-2 max-w-md">
+          <input
+            type="email"
+            placeholder="User email to assign..."
+            value={assignEmail}
+            onChange={(e) => setAssignEmail(e.target.value)}
+            required
+            className="flex-1 px-3 py-1.5 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
+          <Button type="submit" disabled={assigning}>
+            {assigning ? "Assigning..." : "Assign"}
+          </Button>
+        </form>
+        {assignError && <p className="text-xs text-red-500 mt-2">{assignError}</p>}
+      </Card>
+
+      <Card>
+        <h2 className="text-lg font-semibold text-slate-800 mb-3 flex items-center gap-2">
+          <Paperclip size={18} /> Attachments
+        </h2>
+
+        {attachments.length === 0 ? (
+          <p className="text-sm text-slate-400 mb-4">No attachments uploaded yet.</p>
+        ) : (
+          <div className="space-y-2 mb-4">
+            {attachments.map((att) => (
+              <div
+                key={att.id}
+                className="flex justify-between items-center p-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm"
+              >
+                <span className="font-medium text-slate-700 truncate">{att.filename || att.file_name || "Attachment"}</span>
+                {att.file_url && (
+                  <a
+                    href={att.file_url}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="text-xs text-blue-600 hover:underline font-medium"
+                  >
+                    View / Download
+                  </a>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
+
+        <form onSubmit={handleFileUpload} className="flex items-center gap-2 max-w-md">
+          <input
+            type="file"
+            onChange={(e) => setSelectedFile(e.target.files[0])}
+            className="text-xs text-slate-500 file:mr-3 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 cursor-pointer"
+          />
+          <Button type="submit" disabled={uploading || !selectedFile}>
+            {uploading ? "Uploading..." : "Upload"}
+          </Button>
+        </form>
+      </Card>
+
+      <Card>
+        <h2 className="text-lg font-semibold text-slate-800 mb-4 flex items-center gap-2">
+          <MessageSquare size={18} /> Comments ({comments.length})
+        </h2>
+
+        <div className="space-y-3 mb-6 max-h-80 overflow-y-auto">
+          {comments.length === 0 ? (
+            <p className="text-sm text-slate-400">No comments yet. Start the conversation!</p>
+          ) : (
+            comments.map((comment) => (
+              <div key={comment.id} className="p-3 bg-slate-50 rounded-lg border border-slate-100 text-sm">
+                <div className="flex justify-between items-center mb-1 text-xs text-slate-500">
+                  <span className="font-semibold text-slate-700">
+                    {comment.user_full_name || comment.user_name || "User"}
+                  </span>
+                  <span>{comment.created_at ? new Date(comment.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ""}</span>
+                </div>
+                <p className="text-slate-700 whitespace-pre-wrap">{comment.content}</p>
+              </div>
+            ))
+          )}
+        </div>
+
+        <form onSubmit={handleAddComment} className="flex gap-2">
+          <input
+            type="text"
+            placeholder="Write a comment..."
+            value={newComment}
+            onChange={(e) => setNewComment(e.target.value)}
+            className="flex-1 px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
+          <Button type="submit" disabled={commenting || !newComment.trim()}>
+            <Send size={16} />
+          </Button>
+        </form>
+      </Card>
+    </div>
+  );
 }

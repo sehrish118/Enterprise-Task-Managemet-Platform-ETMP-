@@ -207,6 +207,7 @@ class TeamService:
         organization_id: uuid.UUID,
         team_id: uuid.UUID,
         email: str,
+        full_name: str,
         role: str,
         inviter: User,
         background_tasks: BackgroundTasks,
@@ -267,6 +268,7 @@ class TeamService:
         # WORKFLOW A: User does NOT exist in Organization/DB -> Send Email Invite
         token = create_invite_token(
             email=email,
+            full_name=full_name,
             organization_id=organization_id,
             team_id=team_id,
             role=role,

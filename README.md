@@ -1,158 +1,227 @@
-# ETMP — Enterprise Task Management Platform
+# WorkFlow-X — Enterprise Task Management Platform (ETMP)
 
-A production-grade, multi-tenant SaaS backend for organization-based task
-and project management. Built as a flagship backend engineering portfolio
-project, following Clean Architecture principles end-to-end — with both
-a REST API and a server-side rendered (Jinja2) web interface sharing the
-same business logic.
+A production-grade, multi-tenant SaaS application for organization-based task and project management — built as a flagship full-stack engineering portfolio project. Features a high-performance REST API backend paired with a React Single Page Application (SPA), sharing a centralized business logic layer and an RBAC-aware RAG chatbot assistant.
+
+---
 
 ## Tech Stack
 
-- **Framework:** FastAPI (fully async)
-- **Database:** PostgreSQL + SQLAlchemy 2.0 (async, via asyncpg)
-- **Migrations:** Alembic
-- **Validation:** Pydantic v2
-- **Auth:** JWT (access + refresh tokens), bcrypt password hashing
-- **Authorization:** Custom RBAC (Role-Based Access Control)
-- **Web Frontend:** Jinja2 server-side rendering, cookie-based sessions
-- **Testing:** Pytest
+### Backend
+- **FastAPI** (fully async)
+- **PostgreSQL + SQLAlchemy 2.0** (async, via `asyncpg`) with the **pgvector** extension enabled directly on the local database (no separate vector database service)
+- **Alembic** (database migrations)
+- **Pydantic v2** (data validation & schemas)
+- **JWT Authentication** (access + refresh tokens), **bcrypt** password hashing
+- Custom **Role-Based Access Control (RBAC)**
+- **Redis + Celery** (background jobs — document processing, embedding generation)
+- **LangChain + GROQ + SentenceTransformers** (RAG chatbot)
+
+### Frontend
+- **React + Vite + Tailwind CSS** — Modern SPA
+- JWT stored/handled securely, **Axios** API client with auto-token injection and automatic 401 interceptors
+- **react-markdown + remark-gfm** for rendering assistant responses (tables, formatting)
+
+### Infra
+- **PostgreSQL** and **Redis** run as native local services (not containerized) — the `pgvector` extension is installed directly on the local PostgreSQL server and enabled via an Alembic migration (`CREATE EXTENSION IF NOT EXISTS vector;`)
+- **Celery worker** runs with the `solo` execution pool for Windows compatibility (`celery -A app.core.celery_app worker --loglevel=info --pool=solo`)
+
+---
 
 ## Architecture
 
-API (routers) ─┐
-├─► Services (business logic) ─► Repositories (data access) ─► Models (ORM)
-Web (routers) ──┘
+```
+React SPA (frontend/) ──────► REST API (app/api/v1) ──────► Services ──────► Repositories ──────► Models (ORM)
+```
 
+The frontend interacts exclusively with the FastAPI REST API endpoints over HTTP.
 
-Both the REST API (`app/api/v1/`) and the web interface (`app/web/`)
-call the **same Service classes** — business logic is written once and
-reused across both entry points. This is the core Clean Architecture
-benefit demonstrated in this project: swapping or adding a presentation
-layer (JSON vs HTML) never required touching business logic.
+**Architectural Layers:**
+- **Routers** (`app/api/v1/`) — Thin HTTP concerns only (request parsing, status codes, response serialization), no direct business logic.
+- **Services** (`app/services/`) — Central business logic layer, handles validations, permission checks, and domain exceptions.
+- **Repositories** (`app/repositories/`) — Pure data access layer executing database queries via SQLAlchemy async sessions.
+- **Models** (`app/models/`) — Database schemas and relationships mapped with SQLAlchemy ORM.
 
-- **Routers** — thin, HTTP/HTML concerns only, no business logic
-- **Services** — all business logic, raises domain-specific exceptions
-- **Repositories** — pure data access, no business logic
-- **Models** — SQLAlchemy ORM
+The RAG chatbot follows the same principle: it never re-implements permission logic. Its "tools" are thin wrappers that call the **same Services** the REST API uses, so RBAC rules are enforced in exactly one place.
+
+---
 
 ## Project Structure
-app/
-├── api/v1/ # REST API endpoints (JSON) — for external/mobile clients
-├── web/ # Server-side rendered HTML routes — browser-facing
-│ ├── routes/
-│ └── dependencies.py # cookie-based auth (vs header-based for API)
-├── templates/ # Jinja2 HTML templates
-├── static/ # CSS
-├── core/ # Config, security, logging, exceptions
-├── db/ # Session, declarative base, RBAC seed data
-├── models/ # SQLAlchemy ORM models (18 tables)
-├── schemas/ # Pydantic request/response schemas
-├── repositories/ # Data access layer
-├── services/ # Business logic layer
-├── enums/permissions.py # Central permission registry
-└── tests/
-alembic/ # Database migrations
 
-## Multi-Tenancy
+```
+ETMP/
+├── app/
+│   ├── main.py                # Entry point, API routers registered here
+│   ├── core/                  # Config, security (JWT/bcrypt), logging, exceptions,
+│   │                           # celery_app, rate_limit (chatbot-specific)
+│   ├── db/                    # Session, declarative base, RBAC seed data
+│   ├── models/                # SQLAlchemy models (incl. Document, ChatSession,
+│   │                           # ChatMessage, DocumentEmbedding)
+│   ├── schemas/                # Pydantic request/response schemas
+│   ├── repositories/           # Data access layer
+│   ├── services/                # Business logic layer
+│   ├── api/v1/                   # REST API JSON endpoints — consumed by React frontend
+│   ├── middleware/                # IP-based rate limiting, CORS, request logging
+│   ├── enums/permissions.py        # Central RBAC permission registry
+│   └── rag/                         # RAG chatbot module
+│       ├── embedding_service.py     # SentenceTransformers wrapper (singleton model load)
+│       ├── text_extraction.py       # PDF/DOCX/TXT text extraction
+│       ├── chunking.py              # Overlapping word-based chunking
+│       ├── relevance_check.py       # LLM gate: rejects non-company-related uploads
+│       ├── tasks.py                 # Celery tasks (embed task/comment, process document)
+│       ├── rbac_scope.py            # Resolves a user's allowed org/project scope
+│       ├── tools.py                 # Structured-query tools (wrap existing Services)
+│       ├── retrieval.py             # RBAC-scoped pgvector similarity search + citations
+│       └── chat_service.py          # LangChain + GROQ orchestration, streaming
+├── alembic/                    # Database migrations
+└── frontend/                   # React SPA
+    └── src/
+        ├── api/client.js             # Axios client with JWT auto-attach & 401 handling
+        ├── context/AuthContext.jsx   # Global user/session state
+        ├── components/               # Card, Button, Input, Navbar, Sidebar, ProtectedRoute
+        └── pages/                    # Login, Register, AcceptInvite, Dashboard,
+                                       # Organizations, Teams, Projects, Tasks,
+                                       # Notifications, Profile, OrgDashboard,
+                                       # ActivityLogs, Assistant (chatbot UI)
+```
 
-Every tenant-scoped table carries a denormalized `organization_id`.
-Users can belong to multiple organizations; access is always evaluated
-per-organization, never globally.
+---
+
+## Multi-Tenancy & Invitation Flow
+
+### Multi-Tenancy Architecture
+Every tenant-scoped table carries a denormalized `organization_id` column. Users can belong to multiple organizations; access and permissions are evaluated per-organization rather than globally.
+
+### User Onboarding & Invitation Flow
+- **Adding/Inviting Members:** Org Owners/Admins invite members to teams by specifying their Full Name, Email, and Role (MEMBER / TEAM_LEAD).
+- **Direct Add vs. Secure Invite:**
+  - If the user is already part of the organization, they are attached directly.
+  - If the user is new, an invitation link containing an encoded, secure token is generated.
+- **Accepting Invitation:** The invited user accesses the link (`/accept-invite?token=...`), which pre-identifies them without requiring re-entry of their name, and allows them to securely set their password to complete onboarding.
 
 ---
 
 ## Role-Based Access Control (RBAC) — Full Permission Matrix
 
-Three system roles exist per organization: **Owner**, **Admin**, **Member**.
-A separate, project-scoped role (**Project Manager**) governs task
-assignment/deletion within a specific project, independent of the
-organization-level role.
-
-### Organization-Level Roles
+Three organization-level roles: **Owner**, **Admin**, **Member**. One project-scoped role, independent of org role: **Project Manager**.
 
 | Action | Owner | Admin | Member |
-|---|:---:|:---:|:---:|
+|---|---|---|---|
 | Create an organization | ✅ (anyone) | ✅ | ✅ |
 | View/update organization settings | ✅ | ✅ | ❌ |
-| Add/manage organization members | ✅ | ✅ | ❌ |
+| Add/manage organization members & send invitations | ✅ | ✅ | ❌ |
 | Delete organization | ✅ | ❌ | ❌ |
 | View organization dashboard / activity logs | ✅ | ✅ | ❌ |
-| Deactivate a user | ✅ | ✅ | ❌ |
+| Deactivate / reactivate a user | ✅ | ✅ | ❌ |
 | Create a team | ✅ | ✅ | ❌ |
 | Update/delete a team, manage team members | ✅ | ✅ | ❌ |
 | View teams (read-only) | ✅ | ✅ | ✅ |
-| Create a project | ✅ | ✅ | ✅ |
-| View **all** projects in the org | ✅ | ✅ | ❌ (see below) |
-| Create a task | ✅ | ✅ | ✅ |
-| Update a task | ✅ | ✅ | ✅ |
-| Delete a task | Only if **Project Manager** for that project | Only if **Project Manager** for that project | Only if **Project Manager** for that project |
-| Assign a task to someone | Only if **Project Manager** for that project | Only if **Project Manager** for that project | Only if **Project Manager** for that project |
+| Create a project | ✅ | ✅ | ✅ (creator auto-becomes Project Manager) |
+| View all projects in the org | ✅ | ✅ | ❌ (see below) |
+| Upload a document to the org knowledge base | ✅ | ✅ | ❌ |
+| Create / update a task | ✅ | ✅ | ✅ |
+| Delete / assign a task | Only if Project Manager | Only if Project Manager | Only if Project Manager |
 | Post a comment | ✅ Any authenticated org member | | |
-| Edit/delete a comment | ✅ Only the comment's own author (not RBAC — ownership check) | | |
+| Edit/delete a comment | ✅ Only the comment's own author (ownership check) | | |
 
-### Project-Level Visibility (Independent of Org Role)
+**Project-Level Visibility Rules:**
+- Owners & Admins can view every project within the organization.
+- Members can only view projects to which they are explicitly assigned. Accessing an unassigned project returns `404 Not Found` (rather than `403`) to prevent resource enumeration.
+- Project creators automatically assume the Project Manager role for that specific project.
 
-- **Owner / Admin** (anyone with `organization:manage_settings`) see **every project** in the organization.
-- **Member** sees **only projects they are an explicit member of**. Guessing another project's URL returns `404 Not Found` (not `403`) — the API never confirms a project exists to a non-member.
-- Whoever **creates** a project is automatically added as that project's **Project Manager**.
-
-### Why "Project Manager" Matters
-
-Task assignment and deletion are deliberately **not** governed by the
-organization role. Even an **Organization Owner cannot assign or delete
-a task** in a project unless they are specifically that project's
-Project Manager. This models how real teams work: org-wide authority
-doesn't automatically grant control over every individual project's
-day-to-day execution.
-
-### Permission Codes (Backend Reference)
-
-All permissions follow a `resource:action` convention, defined centrally
-in `app/enums/permissions.py`:
-organization:manage_members, organization:manage_settings, organization:delete
-team:create, team:manage_members, team:delete
-project:create, project:manage_members, project:delete
-task:create, task:update, task:delete, task:assign
-
-
-These are seeded into the database via `app/db/seed.py`, mapped to the
-three system roles. Task `delete`/`assign` are enforced at the service
-layer via project membership role, not this table — see above.
+**Technical Enforcement:**
+- REST API requests authenticate via JWT passed in the `Authorization: Bearer <token>` header.
+- `require_permission()` inspects the user's role-permission mapping using a single joined query: `organization_members → roles → role_permissions → permissions`.
+- Project-level actions (task assignment, task deletion) check `project_members.role == PROJECT_MANAGER` directly within the service layer.
+- The chatbot never re-derives these rules — it calls the same `Service` methods, so a Member gets exactly the same visibility through the chatbot as they do through the REST API.
 
 ---
 
-## How Permission Enforcement Works (Technical)
+## RAG Chatbot
 
-1. **Authentication** — JWT decoded from either an `Authorization` header (REST API) or an `httponly` cookie (web), depending on entry point.
-2. **Authorization** — a `require_permission()` (API) / `require_permission_web()` (web) FastAPI dependency checks the requester's role-permission mapping for the organization in the URL, via a single-query join: `organization_members → roles → role_permissions → permissions`.
-3. **Project-scoped actions** (assign/delete tasks) bypass the org-level permission table entirely and check `project_members.role == PROJECT_MANAGER` directly in the service layer.
-4. Denied requests return `403 Forbidden`; requests for resources the user cannot even see return `404 Not Found`.
+An in-app AI assistant scoped per-organization, accessible from a dedicated **Assistant** tab within each organization.
+
+### Core Capabilities
+- **Structured data queries** — member counts, team rosters, project/task lists, per-user task assignments, and org/personal dashboards, answered via function-calling into the existing Service layer (no query logic is duplicated).
+- **Document Q&A (RAG)** — uploaded documents, task descriptions, and comments are chunked, embedded with SentenceTransformers, and stored in `pgvector`. Retrieval uses RBAC-filtered cosine similarity search, and answers include a source citation (e.g. *"Source: Task: Fix login bug"*).
+- **Relevance gate on upload** — before a newly uploaded document is chunked and embedded, an LLM classification step checks whether its content is plausibly company/work-related. Unrelated uploads (e.g. a recipe) are marked `REJECTED` and never enter the searchable knowledge base.
+- **Multi-turn conversations** — each user can maintain multiple named chat sessions per organization (persisted in `chat_sessions` / `chat_messages`), switchable from a sidebar, with automatic title generation from the first message.
+- **Streaming responses** — answers stream token-by-token over Server-Sent Events (SSE) for a responsive, ChatGPT-style experience.
+- **Prompt-injection resistant** — content retrieved from documents/tasks/comments is treated strictly as data; the system prompt explicitly instructs the model to ignore any embedded instructions found in retrieved content.
+- **Per-user rate limiting** — a Redis-backed limiter caps chatbot messages per user per minute, independent of the general IP-based API rate limiter.
+
+### RBAC Enforcement in the Chatbot
+Every chatbot query — whether a structured tool call or a document search — is resolved against a `ChatbotScope` (`app/rag/rbac_scope.py`) built from the requesting user's actual organization/project memberships. Members are restricted to their own tasks and their own projects' data; organization-wide statistics (total member count, org dashboard) are limited to Owners/Admins — mirroring the REST API's permission matrix exactly, with no separate rule set to maintain.
+
+---
 
 ## Local Setup
 
+### Prerequisites
+- Python 3.11+ and Node.js
+- **PostgreSQL** installed locally, with the `pgvector` extension available on the server (installed via `apt install postgresql-<version>-pgvector` on Linux, or built from source / installed via `brew install pgvector` on macOS)
+- **Redis** installed and running locally (not containerized)
+- A [GROQ](https://console.groq.com) API key (free tier available)
+
+### Backend Setup
+
 ```bash
+# Clone the repository and copy environment template
 cp .env.example .env
+
+# Create and activate Python virtual environment
 python -m venv venv
-venv\Scripts\Activate.ps1
-pip install -r requirements-dev.txt
-python -m app.db.seed
+venv\Scripts\Activate.ps1        # Windows PowerShell (or source venv/bin/activate on Linux/Mac)
+
+# Install dependencies
+pip install -r requirements.txt
+
+# Run migrations (this also enables the pgvector extension on your local database)
+# & seed RBAC roles/permissions
 alembic upgrade head
+python -m app.db.seed
+
+# Start the FastAPI development server
 uvicorn app.main:app --reload
 ```
 
-- REST API docs: `http://127.0.0.1:8000/api/v1/docs`
-- Web app: `http://127.0.0.1:8000/login`
+### Background Worker (required for embeddings & document processing)
 
-## Branch History
+In a separate terminal:
 
-Each feature was developed on its own branch, verified end-to-end via
-Postman (API) and manual browser testing (web), then merged into `main`.
-See individual branch READMEs for step-by-step implementation notes.
+```bash
+celery -A app.core.celery_app worker --loglevel=info --pool=solo
+```
+
+> The `--pool=solo` flag is required on Windows — Celery's default prefork/gevent pools conflict with the project's async (`asyncpg`) database connections and cause tasks to hang.
+
+### React Frontend Setup
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+### Access Endpoints
+- REST API Docs (Swagger): [http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs)
+- React Frontend: [http://localhost:5173](http://localhost:5173)
+
+---
+
+## Development Approach
+
+Built module-by-module using dedicated feature branches, with end-to-end API validation using Postman and client testing via the React interface. RBAC security was continuously validated using multi-account audit suites across all role levels (Owner, Admin, Member, Project Manager). The RAG chatbot was built as a layered extension on top of the existing service architecture, deliberately reusing (rather than duplicating) all existing permission logic.
+
+---
 
 ## Roadmap Status
 
-✅ Auth · RBAC · Users · Organizations · Teams · Projects · Tasks ·
-Comments/Attachments · Notifications/Activity Logs · Search/Filter/
-Pagination · Middleware · Global Exception Handling · Web Frontend (Jinja2)
-
-
+- ✅ Auth (JWT Access/Refresh, Password Hashing)
+- ✅ User Onboarding & Secure Invite Flow
+- ✅ Multi-Tenant Isolation & Custom RBAC Matrix
+- ✅ Teams, Projects, Tasks, and Comments Management
+- ✅ Notifications & Audit Activity Logs
+- ✅ Global Exception Handling & Input Validation (Pydantic v2)
+- ✅ React SPA Frontend (Tailwind CSS, Axios Integration)
+- ✅ RAG Chatbot — structured queries, document Q&A with citations, RBAC-scoped retrieval, streaming responses, multi-session chat history, document upload with relevance filtering, per-user rate limiting
+- 🔲 Remaining: Automated test suite (Pytest & Vitest), production deployment setup, semantic caching, hybrid (keyword + semantic) search

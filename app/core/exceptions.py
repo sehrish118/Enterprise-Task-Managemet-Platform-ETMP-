@@ -117,6 +117,10 @@ class UserDeactivatedError(DomainError):
     """Raised when trying to add a deactivated organization member to a team."""
 
 
+class UnsupportedFileTypeError(DomainError):
+    pass
+
+
 # Maps each domain exception to its HTTP status code. Add new
 # exceptions here as they're created — this is the single source of
 # truth for exception -> status code translation.
@@ -147,4 +151,5 @@ EXCEPTION_STATUS_MAP: dict[type[DomainError], int] = {
     NotYourNotificationError: status.HTTP_403_FORBIDDEN,
     UserNotOrganizationMemberError: status.HTTP_400_BAD_REQUEST,
     UserDeactivatedError: status.HTTP_203_NON_AUTHORITATIVE_INFORMATION,
+    UnsupportedFileTypeError: status.HTTP_400_BAD_REQUEST,
 }

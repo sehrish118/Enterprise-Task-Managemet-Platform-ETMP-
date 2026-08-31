@@ -180,15 +180,21 @@ async def refresh(
     return Token(access_token=access_token, refresh_token=payload.refresh_token)
 
 
-@router.post("/accept-invite", response_model=UserRead, status_code=status.HTTP_200_OK)
-async def accept_invite(
-    payload: AcceptInviteRequest, db: Annotated[AsyncSession, Depends(get_db)]
-) -> UserRead:
+@router.post("/accept-invite", status_code=status.HTTP_200_OK)
+async def accept_invitation(
+    payload: AcceptInviteRequest,
+    db: Annotated[AsyncSession, Depends(get_db)],
+) -> dict[str, str]:
+    if payload.password != payload.confirm_password:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Passwords do not match.",
+        )
+
     service = AuthService(db)
     try:
-        user = await service.accept_invitation(
+        await service.accept_invitation(
             token=payload.token,
-            full_name=payload.full_name,
             password=payload.password,
         )
     except InvalidTokenError as e:
@@ -196,7 +202,7 @@ async def accept_invite(
             status_code=status.HTTP_400_BAD_REQUEST, detail=str(e)
         ) from e
 
-    return UserRead.model_validate(user)
+    return {"message": "Account activated successfully. You can now login."}
 
 
 @router.get("/me", response_model=UserRead)

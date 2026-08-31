@@ -54,5 +54,5 @@ class PasswordUpdate(BaseModel):
 
 class AcceptInviteRequest(BaseModel):
     token: str
-    full_name: str = Field(min_length=1, max_length=255)
-    password: str = Field(min_length=8, max_length=72)
+    password: str = Field(min_length=8)
+    confirm_password: str = Field(min_length=8)

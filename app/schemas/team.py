@@ -1,7 +1,7 @@
 import uuid
 from datetime import datetime
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, EmailStr, Field
 
 
 class TeamCreate(BaseModel):
@@ -21,7 +21,10 @@ class TeamRead(BaseModel):
 
 
 class AddTeamMemberRequest(BaseModel):
-    email: str
+    email: EmailStr
+    full_name: str = Field(
+        min_length=1, max_length=150, description="Member's full name provided by Admin"
+    )
     role: str = Field(default="MEMBER", description="MEMBER or TEAM_LEAD")
 
 
@@ -36,3 +39,10 @@ class TeamMemberRead(BaseModel):
 class InviteResponse(BaseModel):
     message: str
     invite_link: str | None = None
+
+
+# Accept Invite ke liye New Request Schema
+class AcceptInviteRequest(BaseModel):
+    token: str
+    password: str = Field(min_length=8)
+    confirm_password: str = Field(min_length=8)
